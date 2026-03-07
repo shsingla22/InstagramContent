@@ -36,15 +36,17 @@ class TestVideoEmbedding:
         video_count = html_content.count('class="reel-player"')
         assert video_count == 10, f"Found {video_count} video elements, expected 10"
 
-    def test_all_videos_have_mp4_source(self, html_content):
-        """MP4 format should be present for all videos."""
-        mp4_count = len(re.findall(r'type="video/mp4"', html_content))
-        assert mp4_count == 10, f"Found {mp4_count} MP4 sources, expected 10"
-
-    def test_all_videos_have_webm_source(self, html_content):
-        """WebM format should be present as primary source for broad compatibility."""
+    def test_all_videos_have_source(self, html_content):
+        """Each video should have at least one embedded source (WebM or MP4)."""
         webm_count = len(re.findall(r'type="video/webm"', html_content))
-        assert webm_count == 10, f"Found {webm_count} WebM sources, expected 10"
+        mp4_count = len(re.findall(r'type="video/mp4"', html_content))
+        total = webm_count + mp4_count
+        assert total >= 10, f"Found {total} video sources (webm={webm_count}, mp4={mp4_count}), expected >= 10"
+
+    def test_videos_are_base64_embedded(self, html_content):
+        """Videos should be embedded as base64 data URIs for portability."""
+        b64_count = len(re.findall(r'data:video/(webm|mp4);base64,', html_content))
+        assert b64_count >= 10, f"Found {b64_count} base64 video sources, expected >= 10"
 
     def test_videos_have_playsinline(self, html_content):
         """playsinline is required for iOS Safari."""

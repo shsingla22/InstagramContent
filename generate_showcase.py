@@ -5,12 +5,37 @@ Reads post data and video paths, producing a polished responsive HTML file
 that previews each Instagram post with its embedded short video Reel.
 """
 
+import base64
 import html as html_mod
 import json
 import os
 from typing import List, Dict
 
 from posts.post_generator import InstagramPost
+
+
+def _encode_b64(path: str) -> str:
+    """Return base64 encoded string of a file."""
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode("ascii")
+
+
+def _find_webm(mp4_path: str) -> str:
+    """Find the WebM version of an MP4 file (same basename, .webm extension)."""
+    webm_path = mp4_path.replace(".mp4", ".webm")
+    if os.path.exists(webm_path):
+        return webm_path
+    # Try short-slug version (e.g. reel_01_the-cafe-racer.webm)
+    dirname = os.path.dirname(mp4_path)
+    basename = os.path.basename(mp4_path)
+    # Extract reel number prefix
+    parts = basename.split("_", 2)
+    if len(parts) >= 2:
+        prefix = parts[0] + "_" + parts[1] + "_"
+        for f in os.listdir(dirname):
+            if f.startswith(prefix) and f.endswith(".webm"):
+                return os.path.join(dirname, f)
+    return ""
 
 
 def build_post_card(post: InstagramPost, index: int, video_path: str = "") -> str:
@@ -26,8 +51,18 @@ def build_post_card(post: InstagramPost, index: int, video_path: str = "") -> st
     for img_url in post.additional_images:
         additional_imgs += f'<img src="{html_mod.escape(img_url)}" alt="Additional image" loading="lazy">\n'
 
-    # Video section — embedded if video exists
+    # Video section — embedded as base64 data URI if video exists
     if video_path and os.path.exists(video_path):
+        # Use WebM (universally supported in modern browsers)
+        webm_path = _find_webm(video_path)
+        if webm_path:
+            webm_b64 = _encode_b64(webm_path)
+            video_src = f'<source src="data:video/webm;base64,{webm_b64}" type="video/webm">'
+        else:
+            # Fallback to MP4 if no WebM available
+            mp4_b64 = _encode_b64(video_path)
+            video_src = f'<source src="data:video/mp4;base64,{mp4_b64}" type="video/mp4">'
+
         video_section = f"""
         <div class="post-video">
           <div class="video-badge">
@@ -35,8 +70,7 @@ def build_post_card(post: InstagramPost, index: int, video_path: str = "") -> st
             REEL
           </div>
           <video class="reel-player" loop muted playsinline preload="auto" poster="{html_mod.escape(post.image_url)}">
-            <source src="{html_mod.escape(video_path.replace('.mp4', '.webm'))}" type="video/webm">
-            <source src="{html_mod.escape(video_path)}" type="video/mp4">
+            {video_src}
           </video>
           <div class="video-controls">
             <button class="play-btn" aria-label="Play video">
