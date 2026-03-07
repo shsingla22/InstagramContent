@@ -41,7 +41,7 @@ def generate_narration(text, output_path):
     """Generate TTS audio with deep, masculine voice — McConaughey-style.
 
     Uses gTTS (Australian English for deeper base voice) with FFmpeg
-    post-processing: pitch shift down 25%, slow tempo 15%, bass boost,
+    post-processing: pitch shift down 22%, normal tempo, bass boost,
     and high-freq roll-off for warm chest resonance.
     """
     tmp_raw = output_path + ".raw.mp3"
@@ -50,8 +50,8 @@ def generate_narration(text, output_path):
 
     # Deep male voice processing (gTTS outputs at 24kHz):
     # - asetrate=24000*0.78: pitch down 22% for deep masculine register
-    #   (this also slows playback ~28%, giving deliberate McConaughey pacing)
     # - aresample=44100: resample to standard rate
+    # - atempo=1.282: compensate for slowdown so speech is normal pace
     # - Bass boost at 100-200Hz for warm chest resonance
     # - High-freq roll-off for smooth, non-tinny sound
     subprocess.run([
@@ -59,6 +59,7 @@ def generate_narration(text, output_path):
         "-af", (
             "asetrate=24000*0.78,"
             "aresample=44100,"
+            "atempo=1.282,"
             "equalizer=f=100:t=h:w=150:g=7,"
             "equalizer=f=200:t=h:w=200:g=4,"
             "equalizer=f=3500:t=h:w=2000:g=-4,"
