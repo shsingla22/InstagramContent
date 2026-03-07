@@ -87,7 +87,7 @@ class TestVideoCodecAndFormat:
     def test_duration_reel_length(self, filename):
         info = self._probe(filename)
         duration = float(info["format"]["duration"])
-        assert 15.0 <= duration <= 35.0, f"{filename} duration is {duration}s, expected 15-35s"
+        assert 15.0 <= duration <= 60.0, f"{filename} duration is {duration}s, expected 15-60s"
 
     @pytest.mark.parametrize("filename", REEL_FILES)
     def test_yuv420p_pixel_format(self, filename):

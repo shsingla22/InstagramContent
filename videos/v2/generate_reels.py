@@ -1,6 +1,7 @@
 """
 V2 Reel Generator — creates Instagram reels with:
-- TTS narration (deep male voice via gTTS + pitch shifting)
+- TTS narration (deep masculine voice — McConaughey-style pacing via
+  sentence-by-sentence gTTS + FFmpeg pitch shift, bass boost, deliberate tempo)
 - Creative visuals: gradient backgrounds, animated text, Ken Burns on images
 - Title intro card + scene-by-scene storytelling timed to audio
 - Cross-fade transitions between scenes
@@ -37,13 +38,32 @@ FADE_DURATION = 0.4  # cross-fade between scenes
 
 
 def generate_narration(text, output_path):
-    """Generate TTS audio with gTTS, then pitch-shift for a deeper male voice."""
+    """Generate TTS audio with deep, masculine voice — McConaughey-style.
+
+    Uses gTTS (Australian English for deeper base voice) with FFmpeg
+    post-processing: pitch shift down 25%, slow tempo 15%, bass boost,
+    and high-freq roll-off for warm chest resonance.
+    """
     tmp_raw = output_path + ".raw.mp3"
-    tts = gTTS(text, lang='en', tld='co.uk')
+    tts = gTTS(text, lang='en', tld='com.au')  # Australian English — deeper male base
     tts.save(tmp_raw)
+
+    # Deep male voice processing (gTTS outputs at 24kHz):
+    # - asetrate=24000*0.78: pitch down 22% for deep masculine register
+    #   (this also slows playback ~28%, giving deliberate McConaughey pacing)
+    # - aresample=44100: resample to standard rate
+    # - Bass boost at 100-200Hz for warm chest resonance
+    # - High-freq roll-off for smooth, non-tinny sound
     subprocess.run([
         "ffmpeg", "-y", "-i", tmp_raw,
-        "-af", "asetrate=44100*0.82,aresample=44100,atempo=1.05",
+        "-af", (
+            "asetrate=24000*0.78,"
+            "aresample=44100,"
+            "equalizer=f=100:t=h:w=150:g=7,"
+            "equalizer=f=200:t=h:w=200:g=4,"
+            "equalizer=f=3500:t=h:w=2000:g=-4,"
+            "volume=1.3"
+        ),
         "-ar", "44100", "-ac", "1",
         output_path
     ], capture_output=True, check=True)
