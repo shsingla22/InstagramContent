@@ -1,13 +1,8 @@
 """
-Instagram Content Creation Module for The Rider's Gang
+Instagram Post Generator
 
-Generates Instagram-ready posts from articles on TheRidersGangContent website.
-Each article produces one Instagram post with:
-- Catchy title and description
-- Relevant images
-- Hashtags for maximum reach
-- Link to the original article
-- Call-to-action text
+Reads shared article data from common/ and produces Instagram-ready posts
+with titles, descriptions, hashtags, images, and calls-to-action.
 """
 
 import json
@@ -15,8 +10,7 @@ import os
 from dataclasses import dataclass, asdict
 from typing import List
 
-
-BASE_URL = "https://shsingla22.github.io/TheRidersGangContent"
+from common.content_data import ArticleData, get_all_articles, get_article_url
 
 
 @dataclass
@@ -33,17 +27,15 @@ class InstagramPost:
     category: str
     read_time: str
     quote: str
+    video_path: str = ""
 
 
-def generate_all_posts() -> List[InstagramPost]:
-    """Generate Instagram posts for all articles."""
-    posts = []
+# ── Post content per article (keyed by slug) ──────────────────────────
 
-    # 1. The Café Racer
-    posts.append(InstagramPost(
-        article_title="The Café Racer: How Coffee Gave Birth to Motorcycle Culture",
-        post_title="Coffee + Speed = A Whole Culture",
-        description=(
+POST_CONTENT = {
+    "the-cafe-racer-how-coffee-gave-birth-to-motorcycle-culture": {
+        "post_title": "Coffee + Speed = A Whole Culture",
+        "description": (
             "In 1950s London, young rebels raced between coffee shops at 100 mph on stripped-down motorcycles. "
             "They called it 'doing the ton' — racing to a roundabout and back before a jukebox song ended. "
             "These daredevils became the Ton-Up Boys, and their DIY ethos birthed the café racer movement "
@@ -51,14 +43,8 @@ def generate_all_posts() -> List[InstagramPost]:
             "to modern Triumph and Ducati models — every café racer owes its soul to a cup of coffee and "
             "a 3-minute rock 'n' roll song."
         ),
-        call_to_action="Link in bio to read the full story of how coffee fueled a revolution on two wheels!",
-        article_url=f"{BASE_URL}/articles/the-cafe-racer-how-coffee-gave-birth-to-motorcycle-culture.html",
-        image_url="https://images.unsplash.com/photo-1558981359-219d6364c9c8?w=1080&h=1080&fit=crop",
-        additional_images=[
-            "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=1080&h=1080&fit=crop",
-            "https://images.unsplash.com/photo-1568708167256-1f385e6485f5?w=1080&h=1080&fit=crop",
-        ],
-        hashtags=[
+        "call_to_action": "Link in bio to read the full story of how coffee fueled a revolution on two wheels!",
+        "hashtags": [
             "#CafeRacer", "#MotorcycleCulture", "#TonUpBoys", "#AceCafe",
             "#VintageMotorcycle", "#BikerLife", "#CafeRacerStyle", "#RidersGang",
             "#MotorcycleHistory", "#ClassicBikes", "#CafeRacerDreams",
@@ -69,16 +55,10 @@ def generate_all_posts() -> List[InstagramPost]:
             "#CustomMotorcycle", "#StreetRacer", "#VintageBikes",
             "#MotorcyclePassion", "#CoffeeAndBikes", "#LiveToRide",
         ],
-        category="Motorcycle Culture",
-        read_time="5 min",
-        quote="You'd hear the jukebox start...and suddenly the car park was empty. Everyone was on the North Circular, flat out.",
-    ))
-
-    # 2. The Saddlebag
-    posts.append(InstagramPost(
-        article_title="The Saddlebag: From Horse Leather to High Fashion",
-        post_title="5,000 Years of the Perfect Bag",
-        description=(
+    },
+    "the-saddlebag-from-horse-leather-to-high-fashion": {
+        "post_title": "5,000 Years of the Perfect Bag",
+        "description": (
             "Every luxury handbag traces its ancestry to a leather pouch strapped to a horse. "
             "From Persian cavalry warriors to medieval couriers, from American cowboys with tooled leather "
             "to Hermès transforming saddle carriers into the Kelly and Birkin bags — the saddlebag's journey "
@@ -86,14 +66,8 @@ def generate_all_posts() -> List[InstagramPost]:
             "inventing anything new. He was paying tribute to 5,000 years of riders who needed their essentials "
             "close at hand."
         ),
-        call_to_action="Swipe through the evolution of riding gear to runway icon. Full story link in bio!",
-        article_url=f"{BASE_URL}/articles/the-saddlebag-from-horse-leather-to-high-fashion.html",
-        image_url="https://images.unsplash.com/photo-1473188588951-666fce8e7c68?w=1080&h=1080&fit=crop",
-        additional_images=[
-            "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=1080&h=1080&fit=crop",
-            "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=1080&h=1080&fit=crop",
-        ],
-        hashtags=[
+        "call_to_action": "Swipe through the evolution of riding gear to runway icon. Full story link in bio!",
+        "hashtags": [
             "#Saddlebag", "#LuxuryFashion", "#Hermes", "#DiorSaddleBag",
             "#EquestrianStyle", "#LeatherCraft", "#FashionHistory",
             "#HorseRiding", "#DesignerBags", "#BirkinBag", "#KellyBag",
@@ -105,16 +79,10 @@ def generate_all_posts() -> List[InstagramPost]:
             "#RidersGang", "#FromSaddleToRunway", "#DesignerHeritage",
             "#ClassicLeather",
         ],
-        category="Riding Fashion",
-        read_time="5 min",
-        quote="Hermès didn't become a luxury brand by accident. They simply pointed their skills at a different customer.",
-    ))
-
-    # 3. The Polo Shirt
-    posts.append(InstagramPost(
-        article_title="The Polo Shirt: From Horseback to High Street",
-        post_title="The Shirt That Conquered the World — On Horseback",
-        description=(
+    },
+    "the-polo-shirt-from-horseback-to-high-street": {
+        "post_title": "The Shirt That Conquered the World — On Horseback",
+        "description": (
             "A sport played on horseback in 1850s India gave the world its most versatile garment. "
             "Victorian polo players hated their stiff collars flapping in the wind, so tennis legend "
             "René Lacoste engineered the fix — a soft-collared, breathable shirt that debuted at the "
@@ -123,14 +91,8 @@ def generate_all_posts() -> List[InstagramPost]:
             "From ancient Persian cavalry training to your wardrobe — all because a rider needed "
             "a better collar."
         ),
-        call_to_action="The full story of fashion's most democratic garment is in the link in bio!",
-        article_url=f"{BASE_URL}/articles/the-polo-shirt-from-horseback-to-high-street.html",
-        image_url="https://images.unsplash.com/photo-1550126417-c0c9e38eba50?w=1080&h=1080&fit=crop",
-        additional_images=[
-            "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=1080&h=1080&fit=crop",
-            "https://images.unsplash.com/photo-1564859228273-274232fdb516?w=1080&h=1080&fit=crop",
-        ],
-        hashtags=[
+        "call_to_action": "The full story of fashion's most democratic garment is in the link in bio!",
+        "hashtags": [
             "#PoloShirt", "#RalphLauren", "#Lacoste", "#FredPerry",
             "#PoloSport", "#EquestrianFashion", "#FashionHistory",
             "#PrepStyle", "#ClassicFashion", "#PoloStyle",
@@ -142,30 +104,18 @@ def generate_all_posts() -> List[InstagramPost]:
             "#DesignerFashion", "#ClassicMenswear", "#PoloRalphLauren",
             "#FashionCulture",
         ],
-        category="Riding Fashion",
-        read_time="5 min",
-        quote="The polo shirt signals both old-money privilege and working-class rebellion, conformity and independence.",
-    ))
-
-    # 4. Denim and the Rider
-    posts.append(InstagramPost(
-        article_title="Denim and the Rider: How Jeans Were Born in the Saddle",
-        post_title="Born in the Saddle: The Real Origin of Your Jeans",
-        description=(
+    },
+    "denim-and-the-rider-how-jeans-were-born-in-the-saddle": {
+        "post_title": "Born in the Saddle: The Real Origin of Your Jeans",
+        "description": (
             "In 1873, a tailor added copper rivets to stop cowboys' pockets from tearing on horseback — "
             "and accidentally invented the most iconic garment in history. Denim survived 14-hour saddle days, "
             "hid trail dirt with indigo dye, and resisted desert thorns. Wrangler engineered the 'Cowboy Cut' "
             "specifically for rodeo riders. Then James Dean and Marlon Brando made jeans cool forever. "
             "Your favourite pair still carries those original copper rivets — a 150-year-old rider's innovation."
         ),
-        call_to_action="Read the incredible journey from saddle to streetwear — link in bio!",
-        article_url=f"{BASE_URL}/articles/denim-and-the-rider-how-jeans-were-born-in-the-saddle.html",
-        image_url="https://images.unsplash.com/photo-1542272604-787c3835535d?w=1080&h=1080&fit=crop",
-        additional_images=[
-            "https://images.unsplash.com/photo-1582552938357-32b906df40cb?w=1080&h=1080&fit=crop",
-            "https://images.unsplash.com/photo-1565084888279-aca607ecce0c?w=1080&h=1080&fit=crop",
-        ],
-        hashtags=[
+        "call_to_action": "Read the incredible journey from saddle to streetwear — link in bio!",
+        "hashtags": [
             "#Denim", "#JeansHistory", "#LeviStrauss", "#Wrangler",
             "#CowboyStyle", "#WesternWear", "#DenimLove", "#JeansCulture",
             "#VintageDenim", "#RawDenim", "#DenimOnDenim",
@@ -177,16 +127,10 @@ def generate_all_posts() -> List[InstagramPost]:
             "#IconicFashion", "#RiderStyle", "#BornInTheSaddle",
             "#CopperRivets",
         ],
-        category="Riding Fashion",
-        read_time="5 min",
-        quote="The cowboy didn't choose denim. Denim chose the cowboy — because nothing else could survive the life he lived.",
-    ))
-
-    # 5. The Riding Crop
-    posts.append(InstagramPost(
-        article_title="The Riding Crop: From Horse Command to Fashion Icon",
-        post_title="2,000 Years of Precision: The Riding Crop Story",
-        description=(
+    },
+    "the-riding-crop-from-horse-command-to-fashion-icon": {
+        "post_title": "2,000 Years of Precision: The Riding Crop Story",
+        "description": (
             "For 2,000 years, a short leather instrument has connected rider to horse. "
             "Roman cavalry soldiers used leather flagella for battlefield communication. "
             "Today's dressage riders use crops as precise extensions of their leg aids — "
@@ -194,14 +138,8 @@ def generate_all_posts() -> List[InstagramPost]:
             "since 1750, with layered gut shafts and braided leather passed through generations. "
             "From ancient warfare to modern runways, the riding crop has never lost its power."
         ),
-        call_to_action="Discover the fascinating 2,000-year journey — full article link in bio!",
-        article_url=f"{BASE_URL}/articles/the-riding-crop-from-horse-command-to-fashion-icon.html",
-        image_url="https://images.unsplash.com/photo-1598974357801-cbca100e65d3?w=1080&h=1080&fit=crop",
-        additional_images=[
-            "https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=1080&h=1080&fit=crop",
-            "https://images.unsplash.com/photo-1566251037378-5e04e3bec343?w=1080&h=1080&fit=crop",
-        ],
-        hashtags=[
+        "call_to_action": "Discover the fascinating 2,000-year journey — full article link in bio!",
+        "hashtags": [
             "#RidingCrop", "#Equestrian", "#HorseRiding", "#Dressage",
             "#EquestrianLife", "#HorseLove", "#EquestrianStyle",
             "#ShowJumping", "#HorsebackRiding", "#EquestrianFashion",
@@ -213,16 +151,10 @@ def generate_all_posts() -> List[InstagramPost]:
             "#HorseAndRider", "#EquestrianCommunity", "#RidingPassion",
             "#HorsebackLife", "#EquestrianWorld",
         ],
-        category="Equestrian Heritage",
-        read_time="5 min",
-        quote="The crop is not about force. It's about conversation — a language between rider and horse refined over millennia.",
-    ))
-
-    # 6. Hermès
-    posts.append(InstagramPost(
-        article_title="Hermès: From Horse Harnesses to High Fashion",
-        post_title="From Horse Harnesses to $200 Billion: The Hermès Story",
-        description=(
+    },
+    "hermes-from-horse-harnesses-to-high-fashion": {
+        "post_title": "From Horse Harnesses to $200 Billion: The Hermès Story",
+        "description": (
             "In 1837, Thierry Hermès opened a Paris workshop making horse harnesses. "
             "When automobiles replaced horses, his family didn't panic — they turned their "
             "legendary leather skills toward handbags. The Kelly bag? Originally a saddle carrier. "
@@ -230,14 +162,8 @@ def generate_all_posts() -> List[InstagramPost]:
             "from the original harnesses. The Birkin? 48 hours per piece. Some sell for $400,000+. "
             "Today Hermès is worth over $200 billion, but the horse remains at its heart."
         ),
-        call_to_action="The full Hermès origin story is unlike anything you've read — link in bio!",
-        article_url=f"{BASE_URL}/articles/hermes-from-horse-harnesses-to-high-fashion.html",
-        image_url="https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=1080&h=1080&fit=crop",
-        additional_images=[
-            "https://images.unsplash.com/photo-1598974357801-cbca100e65d3?w=1080&h=1080&fit=crop",
-            "https://images.unsplash.com/photo-1566251037378-5e04e3bec343?w=1080&h=1080&fit=crop",
-        ],
-        hashtags=[
+        "call_to_action": "The full Hermès origin story is unlike anything you've read — link in bio!",
+        "hashtags": [
             "#Hermes", "#HermèsParis", "#KellyBag", "#BirkinBag",
             "#LuxuryFashion", "#HighFashion", "#FashionHistory",
             "#EquestrianHeritage", "#ParisianLuxury", "#HandCrafted",
@@ -249,16 +175,10 @@ def generate_all_posts() -> List[InstagramPost]:
             "#DesignerFashion", "#FashionOrigins", "#HorseToHanabag",
             "#LegendaryBrands",
         ],
-        category="Equestrian Heritage",
-        read_time="5 min",
-        quote="The horse is the heart of Hermès. It lives in every stitch, every buckle, every piece of leather we touch.",
-    ))
-
-    # 7. Belstaff
-    posts.append(InstagramPost(
-        article_title="Belstaff: The Jacket That Built a Riding Legend",
-        post_title="The Jacket Worn on Every Great Motorcycle Journey",
-        description=(
+    },
+    "belstaff-the-jacket-that-built-a-riding-legend": {
+        "post_title": "The Jacket Worn on Every Great Motorcycle Journey",
+        "description": (
             "In 1924, Harry Grosberg coated Egyptian cotton with wax and created the ultimate "
             "motorcycle jacket. The Trialmaster — built for grueling off-road competition — became "
             "the jacket of legends. Che Guevara wore one across South America. Steve McQueen got "
@@ -266,14 +186,8 @@ def generate_all_posts() -> List[InstagramPost]:
             "the uniform of café racer culture. 100 years later, Belstaff still makes them the same way. "
             "Some legends never need updating."
         ),
-        call_to_action="Read the century-long story of the world's greatest riding jacket — link in bio!",
-        article_url=f"{BASE_URL}/articles/belstaff-the-jacket-that-built-a-riding-legend.html",
-        image_url="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=1080&h=1080&fit=crop",
-        additional_images=[
-            "https://images.unsplash.com/photo-1568708167256-1f385e6485f5?w=1080&h=1080&fit=crop",
-            "https://images.unsplash.com/photo-1585640120759-e47f0048cbf3?w=1080&h=1080&fit=crop",
-        ],
-        hashtags=[
+        "call_to_action": "Read the century-long story of the world's greatest riding jacket — link in bio!",
+        "hashtags": [
             "#Belstaff", "#MotorcycleJacket", "#WaxedCotton", "#Trialmaster",
             "#SteveMcQueen", "#MotorcycleCulture", "#BikerJacket",
             "#VintageMotorcycle", "#CafeRacer", "#RidingGear",
@@ -285,16 +199,10 @@ def generate_all_posts() -> List[InstagramPost]:
             "#MotorcycleGear", "#HeritageClothing", "#RiderLife",
             "#CenturyOfRiding", "#LegendaryGear",
         ],
-        category="Motorcycle Culture",
-        read_time="5 min",
-        quote="Belstaff jackets have been worn on every great motorcycle journey of the twentieth century.",
-    ))
-
-    # 8. Gucci Horsebit Loafer
-    posts.append(InstagramPost(
-        article_title="The Gucci Horsebit Loafer: Born in the Saddle",
-        post_title="A Horse Bit on a Shoe Changed Fashion Forever",
-        description=(
+    },
+    "the-gucci-horsebit-loafer-born-in-the-saddle": {
+        "post_title": "A Horse Bit on a Shoe Changed Fashion Forever",
+        "description": (
             "In 1953, Aldo Gucci took a snaffle bit — the metal device riders use to communicate "
             "with horses — miniaturized it in gold-toned metal, and placed it on a black calfskin "
             "loafer. It became the shoe of presidents, movie stars, and Wall Street traders who "
@@ -302,14 +210,8 @@ def generate_all_posts() -> List[InstagramPost]:
             "collection — the ONLY shoe ever given that honor. When Gucci nearly died in the '90s, "
             "Tom Ford brought it back and saved the brand."
         ),
-        call_to_action="From horse riding to the Met Museum — read the incredible story. Link in bio!",
-        article_url=f"{BASE_URL}/articles/the-gucci-horsebit-loafer-born-in-the-saddle.html",
-        image_url="https://images.unsplash.com/photo-1615979474401-8a6a344de5bd?w=1080&h=1080&fit=crop",
-        additional_images=[
-            "https://images.unsplash.com/photo-1576792741377-eb0f4f6d1a47?w=1080&h=1080&fit=crop",
-            "https://images.unsplash.com/photo-1655664994589-c18d906f7ed4?w=1080&h=1080&fit=crop",
-        ],
-        hashtags=[
+        "call_to_action": "From horse riding to the Met Museum — read the incredible story. Link in bio!",
+        "hashtags": [
             "#Gucci", "#GucciLoafer", "#HorsebitLoafer", "#LuxuryShoes",
             "#ItalianFashion", "#DesignerShoes", "#TomFord", "#GucciFashion",
             "#EquestrianStyle", "#FashionHistory", "#IconicDesign",
@@ -321,16 +223,10 @@ def generate_all_posts() -> List[InstagramPost]:
             "#LuxuryLife", "#ClassicShoes", "#BornInTheSaddle",
             "#HorsebitStyle",
         ],
-        category="Riding Fashion",
-        read_time="5 min",
-        quote="The snaffle bit was made to help a rider talk to a horse. That it became a fashion icon is one of the great surprises of the twentieth century.",
-    ))
-
-    # 9. Riding Boots
-    posts.append(InstagramPost(
-        article_title="Riding Boots: From Cavalry to Catwalk",
-        post_title="500 Years on the Runway — and Still Going Strong",
-        description=(
+    },
+    "riding-boots-from-cavalry-to-catwalk": {
+        "post_title": "500 Years on the Runway — and Still Going Strong",
+        "description": (
             "Every design detail of riding boots serves a purpose: the tall shaft protects from "
             "saddle rub, the smooth sole slides into stirrups, the angled heel prevents slipping through. "
             "The Duke of Wellington redesigned them in 1817. Indian royalty created the jodhpur boot in "
@@ -338,14 +234,8 @@ def generate_all_posts() -> List[InstagramPost]:
             "is up 260% and brands like Hermès, Chanel, and Ralph Lauren put them on every runway. "
             "Five centuries of proof that great design never goes out of style."
         ),
-        call_to_action="From cavalry charges to fashion week — the full boot story awaits. Link in bio!",
-        article_url=f"{BASE_URL}/articles/riding-boots-from-cavalry-to-catwalk.html",
-        image_url="https://images.unsplash.com/photo-1722109283665-05e8a7db546e?w=1080&h=1080&fit=crop",
-        additional_images=[
-            "https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=1080&h=1080&fit=crop",
-            "https://images.unsplash.com/photo-1598974357801-cbca100e65d3?w=1080&h=1080&fit=crop",
-        ],
-        hashtags=[
+        "call_to_action": "From cavalry charges to fashion week — the full boot story awaits. Link in bio!",
+        "hashtags": [
             "#RidingBoots", "#EquestrianFashion", "#BootsOfInstagram",
             "#CavalryBoots", "#FashionBoots", "#EquestrianStyle",
             "#HorseRiding", "#BootLove", "#WellingtonBoots",
@@ -357,16 +247,10 @@ def generate_all_posts() -> List[InstagramPost]:
             "#CatwalkFashion", "#DesignerBoots", "#BootGoals",
             "#FashionHeritage", "#CavalryToCatwalk", "#BootCulture",
         ],
-        category="Boots & Shoes",
-        read_time="5 min",
-        quote="The riding boot didn't become fashionable because designers chose it. It became fashionable because its design was already perfect.",
-    ))
-
-    # 10. Leh-Ladakh
-    posts.append(InstagramPost(
-        article_title="Leh-Ladakh: The Ride That Changes Everything",
-        post_title="18,000 Feet. Zero Oxygen. One Life-Changing Ride.",
-        description=(
+    },
+    "leh-ladakh-the-ride-that-changes-everything": {
+        "post_title": "18,000 Feet. Zero Oxygen. One Life-Changing Ride.",
+        "description": (
             "Khardung La at 5,359 metres. Oxygen-thin air. Roads that disappear into rivers. "
             "The Leh-Ladakh motorcycle journey isn't a vacation — it's a pilgrimage. Riders on "
             "Royal Enfields cross multiple Himalayan passes through landscapes that look like another "
@@ -374,14 +258,8 @@ def generate_all_posts() -> List[InstagramPost]:
             "serving the military, postal service, and now millions of adventure seekers. The Bikerni women's "
             "riding group with 2,500 members proves this journey belongs to everyone."
         ),
-        call_to_action="Ready to understand why riders say Ladakh changes your life? Full story — link in bio!",
-        article_url=f"{BASE_URL}/articles/leh-ladakh-the-ride-that-changes-everything.html",
-        image_url="https://images.unsplash.com/photo-1670644654521-6fbfffeaba87?w=1080&h=1080&fit=crop",
-        additional_images=[
-            "https://images.unsplash.com/photo-1609766856923-7e0a7a3084e4?w=1080&h=1080&fit=crop",
-            "https://images.unsplash.com/photo-1591378603223-e15b45a81640?w=1080&h=1080&fit=crop",
-        ],
-        hashtags=[
+        "call_to_action": "Ready to understand why riders say Ladakh changes your life? Full story — link in bio!",
+        "hashtags": [
             "#LehLadakh", "#Ladakh", "#RoyalEnfield", "#HimalayanRide",
             "#MotorcycleTravel", "#AdventureRiding", "#KhardungLa",
             "#IndiaRide", "#BikerTravel", "#MotorcycleAdventure",
@@ -393,60 +271,65 @@ def generate_all_posts() -> List[InstagramPost]:
             "#MotoTravel", "#LifeChangingRide", "#RideTheHimalayas",
             "#TwoWheelTravel",
         ],
-        category="Motorcycle Lifestyle",
-        read_time="6 min",
-        quote="You don't ride because it's easy. You ride because it's the hardest thing you've done — and because the mountains don't care who you are.",
-    ))
+    },
+}
 
+
+def generate_all_posts() -> List[InstagramPost]:
+    """Generate Instagram posts for all articles using shared data."""
+    articles = get_all_articles()
+    posts = []
+    for article in articles:
+        content = POST_CONTENT[article.slug]
+        post = InstagramPost(
+            article_title=article.title,
+            post_title=content["post_title"],
+            description=content["description"],
+            call_to_action=content["call_to_action"],
+            article_url=get_article_url(article),
+            image_url=article.hero_image,
+            additional_images=article.additional_images,
+            hashtags=content["hashtags"],
+            category=article.category,
+            read_time=article.read_time,
+            quote=article.key_quote,
+        )
+        posts.append(post)
     return posts
 
 
-def export_posts_to_json(posts: List[InstagramPost], output_path: str = "posts_data.json"):
+def export_posts_to_json(posts: List[InstagramPost], output_path: str = "output/posts_data.json"):
     """Export all posts to a JSON file."""
     data = [asdict(post) for post in posts]
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
-    print(f"Exported {len(data)} posts to {output_path}")
+    print(f"  Exported {len(data)} posts to {output_path}")
     return data
 
 
-def format_post_for_instagram(post: InstagramPost) -> str:
-    """Format a single post as Instagram-ready caption text."""
-    lines = []
-    lines.append(f"{post.post_title}")
-    lines.append("")
-    lines.append(post.description)
-    lines.append("")
-    lines.append(f'"{post.quote}"')
-    lines.append("")
-    lines.append(post.call_to_action)
-    lines.append("")
-    lines.append(" ".join(post.hashtags))
-    return "\n".join(lines)
-
-
-def export_captions(posts: List[InstagramPost], output_dir: str = "captions"):
+def export_captions(posts: List[InstagramPost], output_dir: str = "output/captions"):
     """Export individual caption text files for each post."""
     os.makedirs(output_dir, exist_ok=True)
     for i, post in enumerate(posts, 1):
         filename = f"post_{i:02d}.txt"
         filepath = os.path.join(output_dir, filename)
         with open(filepath, "w", encoding="utf-8") as f:
-            f.write(format_post_for_instagram(post))
+            f.write(format_post_caption(post))
         print(f"  Caption saved: {filepath}")
 
 
-if __name__ == "__main__":
-    print("=== The Rider's Gang — Instagram Content Generator ===\n")
-
-    posts = generate_all_posts()
-    print(f"Generated {len(posts)} Instagram posts.\n")
-
-    # Export JSON data
-    export_posts_to_json(posts)
-
-    # Export individual caption files
-    print("\nExporting caption files:")
-    export_captions(posts)
-
-    print("\nDone! Run 'python generate_showcase.py' to build the HTML showcase.")
+def format_post_caption(post: InstagramPost) -> str:
+    """Format a single post as Instagram-ready caption text."""
+    lines = [
+        post.post_title,
+        "",
+        post.description,
+        "",
+        f'"{post.quote}"',
+        "",
+        post.call_to_action,
+        "",
+        " ".join(post.hashtags),
+    ]
+    return "\n".join(lines)

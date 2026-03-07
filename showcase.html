@@ -5,35 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>The Rider's Gang — Instagram Content Showcase</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@400;500;600;700&display=swap');
+
     :root {
-      --bg: #fafafa;
+      --bg: #f5f0eb;
       --card-bg: #ffffff;
-      --text: #262626;
-      --text-secondary: #8e8e8e;
-      --border: #dbdbdb;
-      --accent: #e1306c;
-      --accent-gradient: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-      --blue: #0095f6;
-      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.12);
-      --shadow-hover: 0 4px 12px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08);
-      --radius: 12px;
+      --text: #1a1a1a;
+      --text-secondary: #6b6259;
+      --border: #d4c9bc;
+      --accent: #8B6914;
+      --accent-dark: #2C1810;
+      --accent-light: #D4A843;
+      --gold: #C9A84C;
+      --cream: #F5E6C8;
+      --accent-gradient: linear-gradient(135deg, #2C1810, #8B6914, #D4A843);
+      --blue: #5C4A2E;
+      --shadow: 0 2px 8px rgba(44,24,16,0.08), 0 1px 3px rgba(44,24,16,0.06);
+      --shadow-hover: 0 8px 24px rgba(44,24,16,0.12), 0 2px 8px rgba(44,24,16,0.08);
+      --radius: 8px;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.6;
     }
 
-    /* Hero Section */
+    /* ── Hero Section ──────────────────────────────── */
     .hero {
       background: var(--accent-gradient);
-      color: white;
+      color: var(--cream);
       text-align: center;
-      padding: 60px 20px;
+      padding: 70px 20px 60px;
       position: relative;
       overflow: hidden;
     }
@@ -41,50 +47,68 @@
       content: '';
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.2);
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='m36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      opacity: 0.5;
     }
     .hero-content {
       position: relative;
       z-index: 1;
-      max-width: 700px;
+      max-width: 750px;
       margin: 0 auto;
     }
     .hero h1 {
-      font-size: 2.5rem;
-      font-weight: 800;
-      margin-bottom: 12px;
-      letter-spacing: -0.5px;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 3rem;
+      font-weight: 900;
+      margin-bottom: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .hero .subtitle {
+      font-size: 1rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      opacity: 0.7;
+      margin-bottom: 8px;
     }
     .hero p {
-      font-size: 1.15rem;
-      opacity: 0.9;
+      font-size: 1.05rem;
+      opacity: 0.85;
+      max-width: 600px;
+      margin: 0 auto;
     }
     .hero .stats {
       display: flex;
       justify-content: center;
-      gap: 40px;
-      margin-top: 30px;
+      gap: 50px;
+      margin-top: 35px;
     }
-    .hero .stat {
-      text-align: center;
-    }
+    .hero .stat { text-align: center; }
     .hero .stat-num {
-      font-size: 2rem;
-      font-weight: 800;
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      font-weight: 900;
       display: block;
+      color: var(--gold);
     }
     .hero .stat-label {
-      font-size: 0.85rem;
+      font-size: 0.75rem;
       text-transform: uppercase;
-      letter-spacing: 1px;
-      opacity: 0.8;
+      letter-spacing: 2px;
+      opacity: 0.7;
+    }
+    .hero .divider {
+      width: 60px;
+      height: 2px;
+      background: var(--gold);
+      margin: 20px auto;
     }
 
-    /* Navigation */
+    /* ── Navigation ────────────────────────────────── */
     .post-nav {
       background: var(--card-bg);
       border-bottom: 1px solid var(--border);
-      padding: 16px 20px;
+      padding: 14px 20px;
       position: sticky;
       top: 0;
       z-index: 100;
@@ -98,50 +122,50 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 8px 14px;
-      border-radius: 20px;
+      padding: 7px 14px;
+      border-radius: 4px;
       background: var(--bg);
       border: 1px solid var(--border);
       text-decoration: none;
       color: var(--text);
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       font-weight: 500;
       transition: all 0.2s;
       flex-shrink: 0;
     }
     .nav-item:hover {
-      background: var(--accent);
-      color: white;
-      border-color: var(--accent);
+      background: var(--accent-dark);
+      color: var(--cream);
+      border-color: var(--accent-dark);
     }
     .nav-num {
       background: var(--accent);
       color: white;
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       font-weight: 700;
     }
     .nav-item:hover .nav-num {
-      background: white;
-      color: var(--accent);
+      background: var(--gold);
+      color: var(--accent-dark);
     }
 
-    /* Posts Grid */
+    /* ── Posts Grid ─────────────────────────────────── */
     .posts-container {
-      max-width: 1200px;
-      margin: 30px auto;
+      max-width: 1300px;
+      margin: 35px auto;
       padding: 0 20px;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
       gap: 30px;
     }
 
-    /* Post Card */
+    /* ── Post Card ─────────────────────────────────── */
     .post-card {
       background: var(--card-bg);
       border-radius: var(--radius);
@@ -153,48 +177,140 @@
     }
     .post-card:hover {
       box-shadow: var(--shadow-hover);
-      transform: translateY(-2px);
+      transform: translateY(-3px);
     }
 
     .post-header {
       display: flex;
       align-items: center;
-      padding: 14px 16px;
+      padding: 12px 16px;
       border-bottom: 1px solid var(--border);
+      background: linear-gradient(to right, rgba(44,24,16,0.03), transparent);
     }
     .post-avatar {
       width: 36px;
       height: 36px;
       border-radius: 50%;
       background: var(--accent-gradient);
-      color: white;
+      color: var(--cream);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       font-weight: 800;
       margin-right: 10px;
+      letter-spacing: 0.5px;
     }
-    .post-meta {
-      flex: 1;
-    }
+    .post-meta { flex: 1; }
     .post-username {
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       display: block;
+      color: var(--accent-dark);
     }
     .post-category {
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
     .post-number {
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-      font-weight: 600;
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      color: var(--accent-light);
+      font-weight: 700;
     }
 
+    /* ── Video Section ─────────────────────────────── */
+    .post-video {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 9/16;
+      max-height: 500px;
+      background: #0a0806;
+      overflow: hidden;
+    }
+    .reel-player {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      cursor: pointer;
+    }
+    .placeholder-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.4) sepia(0.3);
+    }
+    .video-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(44,24,16,0.8);
+      backdrop-filter: blur(4px);
+      color: var(--gold);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      z-index: 2;
+    }
+    .video-controls {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.6));
+      z-index: 2;
+    }
+    .play-btn, .mute-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      opacity: 0.9;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .play-btn:hover, .mute-btn:hover {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+    .mute-btn {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+    }
+    .video-pending-label {
+      position: absolute;
+      bottom: 50%;
+      left: 50%;
+      transform: translate(-50%, 50%);
+      color: var(--gold);
+      font-size: 0.85rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(44,24,16,0.7);
+      padding: 10px 20px;
+      border-radius: 6px;
+      backdrop-filter: blur(4px);
+      z-index: 2;
+    }
+
+    /* ── Image Carousel ────────────────────────────── */
     .post-image-carousel {
       position: relative;
+      border-top: 1px solid var(--border);
     }
     .post-image-carousel .main-image {
       width: 100%;
@@ -209,26 +325,22 @@
     }
     .additional-images img {
       flex: 1;
-      height: 100px;
+      height: 90px;
       object-fit: cover;
     }
 
-    .post-content {
-      padding: 16px;
-    }
+    /* ── Post Content ──────────────────────────────── */
+    .post-content { padding: 16px; }
 
     .post-actions {
       display: flex;
       justify-content: space-between;
       margin-bottom: 12px;
     }
-    .action-left {
-      display: flex;
-      gap: 16px;
-    }
+    .action-left { display: flex; gap: 16px; }
     .icon {
-      width: 24px;
-      height: 24px;
+      width: 22px;
+      height: 22px;
       fill: none;
       stroke: var(--text);
       stroke-width: 2;
@@ -237,35 +349,35 @@
       cursor: pointer;
       transition: transform 0.2s;
     }
-    .icon:hover {
-      transform: scale(1.15);
-    }
+    .icon:hover { transform: scale(1.15); }
 
     .post-title {
-      font-size: 1.15rem;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
       font-weight: 700;
       margin-bottom: 8px;
       line-height: 1.3;
+      color: var(--accent-dark);
     }
     .post-description {
-      font-size: 0.9rem;
-      color: var(--text);
+      font-size: 0.88rem;
       margin-bottom: 12px;
-      line-height: 1.55;
+      line-height: 1.6;
     }
     .post-quote {
+      font-family: 'Playfair Display', serif;
       font-style: italic;
-      color: var(--text-secondary);
-      border-left: 3px solid var(--accent);
-      padding: 8px 14px;
-      margin: 12px 0;
+      color: var(--accent-dark);
+      border-left: 3px solid var(--gold);
+      padding: 10px 16px;
+      margin: 14px 0;
       font-size: 0.88rem;
-      background: #fef7f9;
+      background: linear-gradient(to right, rgba(212,168,67,0.08), transparent);
       border-radius: 0 6px 6px 0;
     }
     .post-cta {
-      font-size: 0.85rem;
-      color: var(--blue);
+      font-size: 0.84rem;
+      color: var(--accent);
       font-weight: 600;
       margin-bottom: 14px;
     }
@@ -276,15 +388,15 @@
       margin-bottom: 14px;
     }
     .hashtag {
-      font-size: 0.78rem;
-      color: var(--blue);
-      background: #e8f4fd;
+      font-size: 0.75rem;
+      color: var(--accent);
+      background: rgba(139,105,20,0.08);
       padding: 3px 8px;
-      border-radius: 4px;
+      border-radius: 3px;
       font-weight: 500;
     }
     .hashtag-more {
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       color: var(--text-secondary);
       padding: 3px 8px;
     }
@@ -299,55 +411,35 @@
       color: var(--accent);
       text-decoration: none;
       font-weight: 600;
-      font-size: 0.88rem;
+      font-size: 0.85rem;
       transition: opacity 0.2s;
     }
-    .post-link a:hover {
-      opacity: 0.8;
-    }
+    .post-link a:hover { opacity: 0.7; }
     .read-time {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       color: var(--text-secondary);
     }
 
-    /* Footer */
+    /* ── Footer ────────────────────────────────────── */
     footer {
       text-align: center;
-      padding: 40px 20px;
+      padding: 50px 20px;
       color: var(--text-secondary);
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       border-top: 1px solid var(--border);
       margin-top: 40px;
+      background: linear-gradient(to bottom, transparent, rgba(44,24,16,0.03));
     }
     footer a {
       color: var(--accent);
       text-decoration: none;
     }
-
-    /* Copy button */
-    .copy-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.8rem;
-      color: var(--text);
-      transition: all 0.2s;
-      margin-top: 10px;
-    }
-    .copy-btn:hover {
-      background: var(--accent);
-      color: white;
-      border-color: var(--accent);
-    }
-    .copy-btn.copied {
-      background: #22c55e;
-      color: white;
-      border-color: #22c55e;
+    footer .footer-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent-dark);
+      margin-bottom: 8px;
     }
 
     @media (max-width: 600px) {
@@ -355,8 +447,9 @@
         grid-template-columns: 1fr;
         padding: 0 10px;
       }
-      .hero h1 { font-size: 1.8rem; }
+      .hero h1 { font-size: 2rem; }
       .hero .stats { gap: 20px; }
+      .post-video { max-height: 400px; }
     }
   </style>
 </head>
@@ -364,12 +457,18 @@
 
   <div class="hero">
     <div class="hero-content">
+      <div class="subtitle">Est. 2026</div>
       <h1>The Rider's Gang</h1>
-      <p>Instagram Content Showcase — 10 posts crafted from articles about riding culture, fashion heritage, and motorcycle adventures</p>
+      <div class="divider"></div>
+      <p>Instagram content showcase — posts and Reels crafted from stories about riding culture, equestrian fashion, and motorcycle heritage</p>
       <div class="stats">
         <div class="stat">
           <span class="stat-num">10</span>
           <span class="stat-label">Posts</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num">9</span>
+          <span class="stat-label">Reels</span>
         </div>
         <div class="stat">
           <span class="stat-num">300</span>
@@ -407,6 +506,27 @@
         </div>
         <span class="post-number">#1</span>
       </div>
+
+      
+        <div class="post-video">
+          <div class="video-badge">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            REEL
+          </div>
+          <video class="reel-player" loop muted playsinline preload="metadata" poster="https://images.unsplash.com/photo-1558981359-219d6364c9c8?w=1080&amp;h=1080&amp;fit=crop">
+            <source src="output/videos/reel_01_the-cafe-racer-how-coffee-gave-birth-to-motorcycle-culture.mp4" type="video/mp4">
+          </video>
+          <div class="video-controls">
+            <button class="play-btn" aria-label="Play video">
+              <svg viewBox="0 0 24 24" width="40" height="40"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.5)" stroke="white" stroke-width="1.5"/><polygon points="10 8 17 12 10 16" fill="white"/></svg>
+            </button>
+            <button class="mute-btn" aria-label="Toggle sound">
+              <svg class="muted-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+              <svg class="unmuted-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            </button>
+          </div>
+        </div>
+        
 
       <div class="post-image-carousel">
         <img src="https://images.unsplash.com/photo-1558981359-219d6364c9c8?w=1080&amp;h=1080&amp;fit=crop" alt="The Café Racer: How Coffee Gave Birth to Motorcycle Culture" loading="lazy" class="main-image">
@@ -454,6 +574,27 @@
         <span class="post-number">#2</span>
       </div>
 
+      
+        <div class="post-video">
+          <div class="video-badge">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            REEL
+          </div>
+          <video class="reel-player" loop muted playsinline preload="metadata" poster="https://images.unsplash.com/photo-1473188588951-666fce8e7c68?w=1080&amp;h=1080&amp;fit=crop">
+            <source src="output/videos/reel_02_the-saddlebag-from-horse-leather-to-high-fashion.mp4" type="video/mp4">
+          </video>
+          <div class="video-controls">
+            <button class="play-btn" aria-label="Play video">
+              <svg viewBox="0 0 24 24" width="40" height="40"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.5)" stroke="white" stroke-width="1.5"/><polygon points="10 8 17 12 10 16" fill="white"/></svg>
+            </button>
+            <button class="mute-btn" aria-label="Toggle sound">
+              <svg class="muted-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+              <svg class="unmuted-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            </button>
+          </div>
+        </div>
+        
+
       <div class="post-image-carousel">
         <img src="https://images.unsplash.com/photo-1473188588951-666fce8e7c68?w=1080&amp;h=1080&amp;fit=crop" alt="The Saddlebag: From Horse Leather to High Fashion" loading="lazy" class="main-image">
         <div class="additional-images">
@@ -499,6 +640,20 @@
         </div>
         <span class="post-number">#3</span>
       </div>
+
+      
+        <div class="post-video post-video-placeholder">
+          <img src="https://images.unsplash.com/photo-1550126417-c0c9e38eba50?w=1080&amp;h=1080&amp;fit=crop" alt="The Polo Shirt: From Horseback to High Street" loading="lazy" class="placeholder-img">
+          <div class="video-badge">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            REEL
+          </div>
+          <div class="video-pending-label">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Video generating...
+          </div>
+        </div>
+        
 
       <div class="post-image-carousel">
         <img src="https://images.unsplash.com/photo-1550126417-c0c9e38eba50?w=1080&amp;h=1080&amp;fit=crop" alt="The Polo Shirt: From Horseback to High Street" loading="lazy" class="main-image">
@@ -546,6 +701,27 @@
         <span class="post-number">#4</span>
       </div>
 
+      
+        <div class="post-video">
+          <div class="video-badge">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            REEL
+          </div>
+          <video class="reel-player" loop muted playsinline preload="metadata" poster="https://images.unsplash.com/photo-1542272604-787c3835535d?w=1080&amp;h=1080&amp;fit=crop">
+            <source src="output/videos/reel_04_denim-and-the-rider-how-jeans-were-born-in-the-saddle.mp4" type="video/mp4">
+          </video>
+          <div class="video-controls">
+            <button class="play-btn" aria-label="Play video">
+              <svg viewBox="0 0 24 24" width="40" height="40"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.5)" stroke="white" stroke-width="1.5"/><polygon points="10 8 17 12 10 16" fill="white"/></svg>
+            </button>
+            <button class="mute-btn" aria-label="Toggle sound">
+              <svg class="muted-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+              <svg class="unmuted-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            </button>
+          </div>
+        </div>
+        
+
       <div class="post-image-carousel">
         <img src="https://images.unsplash.com/photo-1542272604-787c3835535d?w=1080&amp;h=1080&amp;fit=crop" alt="Denim and the Rider: How Jeans Were Born in the Saddle" loading="lazy" class="main-image">
         <div class="additional-images">
@@ -591,6 +767,27 @@
         </div>
         <span class="post-number">#5</span>
       </div>
+
+      
+        <div class="post-video">
+          <div class="video-badge">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            REEL
+          </div>
+          <video class="reel-player" loop muted playsinline preload="metadata" poster="https://images.unsplash.com/photo-1598974357801-cbca100e65d3?w=1080&amp;h=1080&amp;fit=crop">
+            <source src="output/videos/reel_05_the-riding-crop-from-horse-command-to-fashion-icon.mp4" type="video/mp4">
+          </video>
+          <div class="video-controls">
+            <button class="play-btn" aria-label="Play video">
+              <svg viewBox="0 0 24 24" width="40" height="40"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.5)" stroke="white" stroke-width="1.5"/><polygon points="10 8 17 12 10 16" fill="white"/></svg>
+            </button>
+            <button class="mute-btn" aria-label="Toggle sound">
+              <svg class="muted-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+              <svg class="unmuted-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            </button>
+          </div>
+        </div>
+        
 
       <div class="post-image-carousel">
         <img src="https://images.unsplash.com/photo-1598974357801-cbca100e65d3?w=1080&amp;h=1080&amp;fit=crop" alt="The Riding Crop: From Horse Command to Fashion Icon" loading="lazy" class="main-image">
@@ -638,6 +835,27 @@
         <span class="post-number">#6</span>
       </div>
 
+      
+        <div class="post-video">
+          <div class="video-badge">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            REEL
+          </div>
+          <video class="reel-player" loop muted playsinline preload="metadata" poster="https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=1080&amp;h=1080&amp;fit=crop">
+            <source src="output/videos/reel_06_hermes-from-horse-harnesses-to-high-fashion.mp4" type="video/mp4">
+          </video>
+          <div class="video-controls">
+            <button class="play-btn" aria-label="Play video">
+              <svg viewBox="0 0 24 24" width="40" height="40"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.5)" stroke="white" stroke-width="1.5"/><polygon points="10 8 17 12 10 16" fill="white"/></svg>
+            </button>
+            <button class="mute-btn" aria-label="Toggle sound">
+              <svg class="muted-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+              <svg class="unmuted-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            </button>
+          </div>
+        </div>
+        
+
       <div class="post-image-carousel">
         <img src="https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=1080&amp;h=1080&amp;fit=crop" alt="Hermès: From Horse Harnesses to High Fashion" loading="lazy" class="main-image">
         <div class="additional-images">
@@ -683,6 +901,27 @@
         </div>
         <span class="post-number">#7</span>
       </div>
+
+      
+        <div class="post-video">
+          <div class="video-badge">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            REEL
+          </div>
+          <video class="reel-player" loop muted playsinline preload="metadata" poster="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=1080&amp;h=1080&amp;fit=crop">
+            <source src="output/videos/reel_07_belstaff-the-jacket-that-built-a-riding-legend.mp4" type="video/mp4">
+          </video>
+          <div class="video-controls">
+            <button class="play-btn" aria-label="Play video">
+              <svg viewBox="0 0 24 24" width="40" height="40"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.5)" stroke="white" stroke-width="1.5"/><polygon points="10 8 17 12 10 16" fill="white"/></svg>
+            </button>
+            <button class="mute-btn" aria-label="Toggle sound">
+              <svg class="muted-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+              <svg class="unmuted-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            </button>
+          </div>
+        </div>
+        
 
       <div class="post-image-carousel">
         <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=1080&amp;h=1080&amp;fit=crop" alt="Belstaff: The Jacket That Built a Riding Legend" loading="lazy" class="main-image">
@@ -730,6 +969,27 @@
         <span class="post-number">#8</span>
       </div>
 
+      
+        <div class="post-video">
+          <div class="video-badge">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            REEL
+          </div>
+          <video class="reel-player" loop muted playsinline preload="metadata" poster="https://images.unsplash.com/photo-1615979474401-8a6a344de5bd?w=1080&amp;h=1080&amp;fit=crop">
+            <source src="output/videos/reel_08_the-gucci-horsebit-loafer-born-in-the-saddle.mp4" type="video/mp4">
+          </video>
+          <div class="video-controls">
+            <button class="play-btn" aria-label="Play video">
+              <svg viewBox="0 0 24 24" width="40" height="40"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.5)" stroke="white" stroke-width="1.5"/><polygon points="10 8 17 12 10 16" fill="white"/></svg>
+            </button>
+            <button class="mute-btn" aria-label="Toggle sound">
+              <svg class="muted-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+              <svg class="unmuted-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            </button>
+          </div>
+        </div>
+        
+
       <div class="post-image-carousel">
         <img src="https://images.unsplash.com/photo-1615979474401-8a6a344de5bd?w=1080&amp;h=1080&amp;fit=crop" alt="The Gucci Horsebit Loafer: Born in the Saddle" loading="lazy" class="main-image">
         <div class="additional-images">
@@ -775,6 +1035,27 @@
         </div>
         <span class="post-number">#9</span>
       </div>
+
+      
+        <div class="post-video">
+          <div class="video-badge">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            REEL
+          </div>
+          <video class="reel-player" loop muted playsinline preload="metadata" poster="https://images.unsplash.com/photo-1722109283665-05e8a7db546e?w=1080&amp;h=1080&amp;fit=crop">
+            <source src="output/videos/reel_09_riding-boots-from-cavalry-to-catwalk.mp4" type="video/mp4">
+          </video>
+          <div class="video-controls">
+            <button class="play-btn" aria-label="Play video">
+              <svg viewBox="0 0 24 24" width="40" height="40"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.5)" stroke="white" stroke-width="1.5"/><polygon points="10 8 17 12 10 16" fill="white"/></svg>
+            </button>
+            <button class="mute-btn" aria-label="Toggle sound">
+              <svg class="muted-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+              <svg class="unmuted-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            </button>
+          </div>
+        </div>
+        
 
       <div class="post-image-carousel">
         <img src="https://images.unsplash.com/photo-1722109283665-05e8a7db546e?w=1080&amp;h=1080&amp;fit=crop" alt="Riding Boots: From Cavalry to Catwalk" loading="lazy" class="main-image">
@@ -822,6 +1103,27 @@
         <span class="post-number">#10</span>
       </div>
 
+      
+        <div class="post-video">
+          <div class="video-badge">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            REEL
+          </div>
+          <video class="reel-player" loop muted playsinline preload="metadata" poster="https://images.unsplash.com/photo-1670644654521-6fbfffeaba87?w=1080&amp;h=1080&amp;fit=crop">
+            <source src="output/videos/reel_10_leh-ladakh-the-ride-that-changes-everything.mp4" type="video/mp4">
+          </video>
+          <div class="video-controls">
+            <button class="play-btn" aria-label="Play video">
+              <svg viewBox="0 0 24 24" width="40" height="40"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.5)" stroke="white" stroke-width="1.5"/><polygon points="10 8 17 12 10 16" fill="white"/></svg>
+            </button>
+            <button class="mute-btn" aria-label="Toggle sound">
+              <svg class="muted-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+              <svg class="unmuted-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            </button>
+          </div>
+        </div>
+        
+
       <div class="post-image-carousel">
         <img src="https://images.unsplash.com/photo-1670644654521-6fbfffeaba87?w=1080&amp;h=1080&amp;fit=crop" alt="Leh-Ladakh: The Ride That Changes Everything" loading="lazy" class="main-image">
         <div class="additional-images">
@@ -860,24 +1162,42 @@
   </main>
 
   <footer>
-    <p>Generated by <strong>The Rider's Gang Instagram Content Module</strong></p>
-    <p>Source: <a href="https://shsingla22.github.io/TheRidersGangContent/index.html#articles" target="_blank">TheRidersGangContent</a></p>
+    <p class="footer-brand">The Rider's Gang</p>
+    <p>Instagram Content Module — Posts + Reels</p>
+    <p style="margin-top: 6px">Source: <a href="https://shsingla22.github.io/TheRidersGangContent/index.html#articles" target="_blank">TheRidersGangContent</a></p>
   </footer>
 
   <script>
-    // Copy caption to clipboard
-    document.querySelectorAll('.copy-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const caption = btn.getAttribute('data-caption');
-        navigator.clipboard.writeText(caption).then(() => {
-          btn.classList.add('copied');
-          btn.textContent = 'Copied!';
-          setTimeout(() => {
-            btn.classList.remove('copied');
-            btn.textContent = 'Copy Caption';
-          }, 2000);
-        });
+    // Video play/pause toggle
+    document.querySelectorAll('.post-video').forEach(container => {
+      const video = container.querySelector('.reel-player');
+      const playBtn = container.querySelector('.play-btn');
+      const muteBtn = container.querySelector('.mute-btn');
+      if (!video || !playBtn) return;
+
+      playBtn.addEventListener('click', () => {
+        if (video.paused) {
+          // Pause all other videos first
+          document.querySelectorAll('.reel-player').forEach(v => {
+            if (v !== video) v.pause();
+          });
+          video.play();
+          playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="40" height="40"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.5)" stroke="white" stroke-width="1.5"/><rect x="8" y="7" width="3" height="10" rx="1" fill="white"/><rect x="13" y="7" width="3" height="10" rx="1" fill="white"/></svg>';
+        } else {
+          video.pause();
+          playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="40" height="40"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.5)" stroke="white" stroke-width="1.5"/><polygon points="10 8 17 12 10 16" fill="white"/></svg>';
+        }
       });
+
+      if (muteBtn) {
+        muteBtn.addEventListener('click', () => {
+          video.muted = !video.muted;
+          muteBtn.querySelector('.muted-icon').style.display = video.muted ? 'block' : 'none';
+          muteBtn.querySelector('.unmuted-icon').style.display = video.muted ? 'none' : 'block';
+        });
+      }
+
+      video.addEventListener('click', () => playBtn.click());
     });
 
     // Smooth scroll for nav

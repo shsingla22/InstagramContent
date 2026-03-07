@@ -1,0 +1,11 @@
+# Core dependencies
+moviepy>=2.0.0
+Pillow>=10.0.0
+numpy>=1.24.0
+
+# GPU video generation (optional — requires CUDA GPU)
+# Uncomment these for CogVideoX-5b text-to-video generation:
+# torch>=2.1.0
+# diffusers>=0.30.0
+# transformers>=4.40.0
+# accelerate>=0.30.0
