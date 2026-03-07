@@ -84,10 +84,10 @@ class TestVideoCodecAndFormat:
         assert (w, h) == (1080, 1920), f"{filename} is {w}x{h}, expected 1080x1920"
 
     @pytest.mark.parametrize("filename", REEL_FILES)
-    def test_duration_around_8_seconds(self, filename):
+    def test_duration_reel_length(self, filename):
         info = self._probe(filename)
         duration = float(info["format"]["duration"])
-        assert 7.0 <= duration <= 9.0, f"{filename} duration is {duration}s, expected ~8s"
+        assert 15.0 <= duration <= 35.0, f"{filename} duration is {duration}s, expected 15-35s"
 
     @pytest.mark.parametrize("filename", REEL_FILES)
     def test_yuv420p_pixel_format(self, filename):
@@ -95,6 +95,15 @@ class TestVideoCodecAndFormat:
         info = self._probe(filename)
         pix_fmt = info["streams"][0]["pix_fmt"]
         assert pix_fmt == "yuv420p", f"{filename} uses {pix_fmt}, expected yuv420p"
+
+    @pytest.mark.parametrize("filename", REEL_FILES)
+    def test_has_audio_track(self, filename):
+        info = self._probe(filename)
+        audio_streams = [s for s in info["streams"] if s["codec_type"] == "audio"]
+        assert len(audio_streams) >= 1, f"{filename} has no audio track"
+        assert audio_streams[0]["codec_name"] == "aac", (
+            f"{filename} audio is {audio_streams[0]['codec_name']}, expected aac"
+        )
 
     @pytest.mark.parametrize("filename", REEL_FILES)
     def test_mp4_container_format(self, filename):
