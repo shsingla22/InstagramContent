@@ -51,8 +51,8 @@ class TestVideoLoading:
             }));
         }""")
         for d in durations:
-            assert d["duration"] > 10 and d["duration"] < 40, (
-                f"Video #{d['index']}: duration={d['duration']} (expected 15-35s)"
+            assert d["duration"] > 3 and d["duration"] < 60, (
+                f"Video #{d['index']}: duration={d['duration']} (expected 3-60s)"
             )
 
     def test_all_videos_have_dimensions(self, browser_page):

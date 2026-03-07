@@ -34,7 +34,8 @@ def build_post_card(post: InstagramPost, index: int, video_path: str = "") -> st
             <svg viewBox="0 0 24 24" width="14" height="14" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             REEL
           </div>
-          <video class="reel-player" loop muted playsinline preload="metadata" poster="{html_mod.escape(post.image_url)}">
+          <video class="reel-player" loop muted playsinline preload="auto" poster="{html_mod.escape(post.image_url)}">
+            <source src="{html_mod.escape(video_path.replace('.mp4', '.webm'))}" type="video/webm">
             <source src="{html_mod.escape(video_path)}" type="video/mp4">
           </video>
           <div class="video-controls">
@@ -127,7 +128,10 @@ def generate_html(posts: List[InstagramPost], video_map: Dict[str, str] = None) 
     # Match posts to videos by extracting slug from article_url
     def get_slug(post):
         url = post.article_url
-        return url.rstrip(".html").split("/")[-1]
+        name = url.split("/")[-1]
+        if name.endswith(".html"):
+            name = name[:-5]
+        return name
 
     post_cards = "\n".join(
         build_post_card(post, i + 1, video_map.get(get_slug(post), ""))
@@ -650,17 +654,22 @@ def generate_html(posts: List[InstagramPost], video_map: Dict[str, str] = None) 
       const muteBtn = container.querySelector('.mute-btn');
       if (!video || !playBtn) return;
 
+      const pauseIcon = '<svg viewBox="0 0 24 24" width="40" height="40"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.5)" stroke="white" stroke-width="1.5"/><rect x="8" y="7" width="3" height="10" rx="1" fill="white"/><rect x="13" y="7" width="3" height="10" rx="1" fill="white"/></svg>';
+      const playIcon = '<svg viewBox="0 0 24 24" width="40" height="40"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.5)" stroke="white" stroke-width="1.5"/><polygon points="10 8 17 12 10 16" fill="white"/></svg>';
+
       playBtn.addEventListener('click', () => {{
         if (video.paused) {{
           // Pause all other videos first
           document.querySelectorAll('.reel-player').forEach(v => {{
             if (v !== video) v.pause();
           }});
-          video.play();
-          playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="40" height="40"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.5)" stroke="white" stroke-width="1.5"/><rect x="8" y="7" width="3" height="10" rx="1" fill="white"/><rect x="13" y="7" width="3" height="10" rx="1" fill="white"/></svg>';
+          document.querySelectorAll('.play-btn').forEach(b => {{ b.innerHTML = playIcon; }});
+          video.play().then(() => {{
+            playBtn.innerHTML = pauseIcon;
+          }}).catch(() => {{}});
         }} else {{
           video.pause();
-          playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="40" height="40"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.5)" stroke="white" stroke-width="1.5"/><polygon points="10 8 17 12 10 16" fill="white"/></svg>';
+          playBtn.innerHTML = playIcon;
         }}
       }});
 

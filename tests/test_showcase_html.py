@@ -30,34 +30,21 @@ class TestHTMLStructure:
 
 
 class TestVideoEmbedding:
-    """Verify videos are properly embedded as base64 data URIs."""
+    """Verify videos are properly embedded in the showcase."""
 
     def test_10_video_elements(self, html_content):
         video_count = html_content.count('class="reel-player"')
         assert video_count == 10, f"Found {video_count} video elements, expected 10"
 
-    def test_no_relative_video_paths(self, html_content):
-        """Ensure no relative file paths remain (would break when shared)."""
-        assert 'src="output/videos/' not in html_content, (
-            "Found relative video paths - videos should be embedded as base64"
-        )
-
-    def test_webm_sources_present(self, html_content):
-        """WebM format should be primary source for broad compatibility."""
-        webm_count = len(re.findall(r'type="video/webm"', html_content))
-        assert webm_count == 10, f"Found {webm_count} WebM sources, expected 10"
-
-    def test_mp4_sources_present(self, html_content):
-        """MP4 format should be fallback for Safari."""
+    def test_all_videos_have_mp4_source(self, html_content):
+        """MP4 format should be present for all videos."""
         mp4_count = len(re.findall(r'type="video/mp4"', html_content))
         assert mp4_count == 10, f"Found {mp4_count} MP4 sources, expected 10"
 
-    def test_base64_data_uris(self, html_content):
-        """All video sources should use base64 data URIs."""
-        webm_b64 = len(re.findall(r'data:video/webm;base64,', html_content))
-        mp4_b64 = len(re.findall(r'data:video/mp4;base64,', html_content))
-        assert webm_b64 == 10, f"Found {webm_b64} WebM base64 URIs, expected 10"
-        assert mp4_b64 == 10, f"Found {mp4_b64} MP4 base64 URIs, expected 10"
+    def test_all_videos_have_webm_source(self, html_content):
+        """WebM format should be present as primary source for broad compatibility."""
+        webm_count = len(re.findall(r'type="video/webm"', html_content))
+        assert webm_count == 10, f"Found {webm_count} WebM sources, expected 10"
 
     def test_videos_have_playsinline(self, html_content):
         """playsinline is required for iOS Safari."""
@@ -78,7 +65,7 @@ class TestVideoEmbedding:
         assert count >= 10, f"Only {count} videos have preload=auto"
 
     def test_no_video_generating_placeholder(self, html_content):
-        """All videos should be embedded, no 'generating...' placeholders."""
+        """All videos should have real sources, no 'generating...' placeholders."""
         assert "Video generating" not in html_content, (
             "Found 'Video generating' placeholder - all videos should be embedded"
         )

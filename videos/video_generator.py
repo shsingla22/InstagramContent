@@ -331,6 +331,21 @@ def generate_video_moviepy(
         logger=None,
     )
 
+    # ── Faststart for web playback ────────────────────────────────
+    # Move moov atom before mdat so browsers can play without full download
+    tmp_path = output_path + ".faststart.mp4"
+    try:
+        subprocess.run(
+            ["ffmpeg", "-y", "-i", output_path,
+             "-c", "copy", "-movflags", "+faststart", tmp_path],
+            capture_output=True, check=True,
+        )
+        os.replace(tmp_path, output_path)
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        print(f"    Warning: faststart remux failed: {e}")
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+
     # Cleanup temp images
     import shutil
     shutil.rmtree(temp_dir, ignore_errors=True)
