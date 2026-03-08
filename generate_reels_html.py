@@ -2,8 +2,8 @@
 Module 2: Generate reels-only HTML showcase with embedded video.
 
 Produces a self-contained HTML file displaying Instagram Reels with
-the video embedded as a base64 WebM data URI — playable by just
-opening the HTML file in any modern browser (no server needed).
+the video embedded as base64 data URIs (WebM + MP4 for cross-browser
+support). Uses native browser <video controls> for maximum compatibility.
 """
 
 import base64
@@ -21,7 +21,7 @@ def _encode_b64(path: str) -> str:
         return base64.b64encode(f.read()).decode("ascii")
 
 
-def build_reel_card(reel: dict, webm_b64: str) -> str:
+def build_reel_card(reel: dict, webm_b64: str | None, mp4_b64: str | None) -> str:
     """Build HTML for a single reel card with embedded video."""
     title = html_mod.escape(reel["title"].replace("\n", " "))
     subtitle = html_mod.escape(reel["subtitle"].replace("\n", " "))
@@ -31,6 +31,13 @@ def build_reel_card(reel: dict, webm_b64: str) -> str:
     scenes_html = ""
     for i, scene in enumerate(reel["scenes"]):
         scenes_html += f'<div class="scene"><span class="scene-num">{i+1}</span> {html_mod.escape(scene["text"].replace(chr(10), " "))}</div>\n'
+
+    # Build <source> elements — WebM first (smaller), MP4 fallback (Safari)
+    sources = ""
+    if webm_b64:
+        sources += f'          <source src="data:video/webm;base64,{webm_b64}" type="video/webm">\n'
+    if mp4_b64:
+        sources += f'          <source src="data:video/mp4;base64,{mp4_b64}" type="video/mp4">\n'
 
     return f"""
     <div class="reel-card">
@@ -42,42 +49,11 @@ def build_reel_card(reel: dict, webm_b64: str) -> str:
       </div>
 
       <div class="video-container">
-        <video class="reel-player" loop muted playsinline preload="auto">
-          <source src="data:video/webm;base64,{webm_b64}" type="video/webm">
+        <video class="reel-player" controls playsinline preload="auto"
+               poster="" style="width:100%; background:#000;">
+{sources}          <p style="color:red; padding:20px;">Your browser does not support video playback.
+             Try opening this file in Chrome, Firefox, or Safari.</p>
         </video>
-        <div class="video-overlay" id="video-overlay">
-          <button class="big-play-btn" id="big-play" aria-label="Play video">
-            <svg viewBox="0 0 80 80" width="80" height="80">
-              <circle cx="40" cy="40" r="38" fill="rgba(0,0,0,0.6)" stroke="white" stroke-width="2"/>
-              <polygon points="32 24 60 40 32 56" fill="white"/>
-            </svg>
-          </button>
-        </div>
-        <div class="video-controls">
-          <button class="play-btn" aria-label="Play/Pause">
-            <svg class="icon-play" viewBox="0 0 24 24" width="28" height="28">
-              <polygon points="6 3 20 12 6 21" fill="white"/>
-            </svg>
-            <svg class="icon-pause" viewBox="0 0 24 24" width="28" height="28" style="display:none">
-              <rect x="5" y="3" width="5" height="18" rx="1" fill="white"/>
-              <rect x="14" y="3" width="5" height="18" rx="1" fill="white"/>
-            </svg>
-          </button>
-          <div class="progress-bar">
-            <div class="progress-fill" id="progress-fill"></div>
-          </div>
-          <span class="time-display" id="time-display">0:00 / 0:00</span>
-          <button class="mute-btn" aria-label="Toggle sound">
-            <svg class="icon-muted" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="white" stroke-width="2">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-              <line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>
-            </svg>
-            <svg class="icon-unmuted" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="white" stroke-width="2" style="display:none">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
-            </svg>
-          </button>
-        </div>
       </div>
 
       <div class="reel-details">
@@ -196,83 +172,32 @@ def generate_reels_html(reel_cards_html: str, count: int) -> str:
       text-transform: uppercase;
     }}
 
-    /* ── Video Player ── */
+    /* ── Video ── */
     .video-container {{
-      position: relative;
       width: 100%;
-      aspect-ratio: 9/16;
       background: #000;
-      cursor: pointer;
     }}
     .reel-player {{
+      display: block;
       width: 100%;
-      height: 100%;
-      object-fit: cover;
+      max-height: 80vh;
+      background: #000;
     }}
-    .video-overlay {{
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0,0,0,0.3);
-      transition: opacity 0.3s;
+    /* Style the native controls on dark background */
+    .reel-player::-webkit-media-controls-panel {{
+      background: linear-gradient(transparent, rgba(0,0,0,0.7));
     }}
-    .video-overlay.hidden {{
-      opacity: 0;
-      pointer-events: none;
-    }}
-    .big-play-btn {{
-      background: none;
-      border: none;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }}
-    .big-play-btn:hover {{
-      transform: scale(1.1);
-    }}
-    .video-controls {{
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 12px 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: linear-gradient(transparent, rgba(0,0,0,0.8));
-    }}
-    .play-btn, .mute-btn {{
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 4px;
-      opacity: 0.9;
-      display: flex;
-      align-items: center;
-    }}
-    .play-btn:hover, .mute-btn:hover {{ opacity: 1; }}
 
-    .progress-bar {{
-      flex: 1;
-      height: 4px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 2px;
-      cursor: pointer;
-      position: relative;
-    }}
-    .progress-fill {{
-      height: 100%;
-      background: var(--accent);
-      border-radius: 2px;
-      width: 0%;
-      transition: width 0.1s linear;
-    }}
-    .time-display {{
-      font-size: 0.7rem;
-      color: rgba(255,255,255,0.7);
-      font-variant-numeric: tabular-nums;
-      white-space: nowrap;
+    .video-error {{
+      display: none;
+      padding: 20px;
+      text-align: center;
+      color: #ff6b6b;
+      font-weight: 600;
+      background: rgba(255,0,0,0.1);
+      border: 1px solid rgba(255,0,0,0.3);
+      border-radius: 8px;
+      margin: 10px 20px;
     }}
 
     /* ── Reel Details ── */
@@ -336,7 +261,7 @@ def generate_reels_html(reel_cards_html: str, count: int) -> str:
   <div class="hero">
     <div class="subtitle">Instagram Reels</div>
     <h1>The Rider's Gang</h1>
-    <p>{count} Reel{"s" if count != 1 else ""} — Stories about riding culture, equestrian fashion, and motorcycle heritage</p>
+    <p>{count} Reel{"s" if count != 1 else ""} &mdash; Stories about riding culture, equestrian fashion, and motorcycle heritage</p>
   </div>
 
   <div class="reels-container">
@@ -349,78 +274,26 @@ def generate_reels_html(reel_cards_html: str, count: int) -> str:
   </footer>
 
   <script>
-    document.querySelectorAll('.reel-card').forEach(card => {{
-      const video = card.querySelector('.reel-player');
-      const playBtn = card.querySelector('.play-btn');
-      const muteBtn = card.querySelector('.mute-btn');
-      const overlay = card.querySelector('.video-overlay');
-      const bigPlay = card.querySelector('.big-play-btn');
-      const progressFill = card.querySelector('.progress-fill');
-      const timeDisplay = card.querySelector('.time-display');
-      const progressBar = card.querySelector('.progress-bar');
-
-      if (!video || !playBtn) return;
-
-      function fmt(s) {{
-        const m = Math.floor(s / 60);
-        const sec = Math.floor(s % 60);
-        return m + ':' + (sec < 10 ? '0' : '') + sec;
-      }}
-
-      function togglePlay() {{
-        if (video.paused) {{
-          // Pause all other videos
-          document.querySelectorAll('.reel-player').forEach(v => {{
-            if (v !== video) v.pause();
-          }});
-          video.play().then(() => {{
-            playBtn.querySelector('.icon-play').style.display = 'none';
-            playBtn.querySelector('.icon-pause').style.display = 'block';
-            overlay.classList.add('hidden');
-          }}).catch(() => {{}});
-        }} else {{
-          video.pause();
-          playBtn.querySelector('.icon-play').style.display = 'block';
-          playBtn.querySelector('.icon-pause').style.display = 'none';
-        }}
-      }}
-
-      bigPlay.addEventListener('click', (e) => {{ e.stopPropagation(); togglePlay(); }});
-      playBtn.addEventListener('click', togglePlay);
-      video.addEventListener('click', togglePlay);
-
-      video.addEventListener('timeupdate', () => {{
-        if (video.duration) {{
-          const pct = (video.currentTime / video.duration) * 100;
-          progressFill.style.width = pct + '%';
-          timeDisplay.textContent = fmt(video.currentTime) + ' / ' + fmt(video.duration);
+    // Show error messages if video fails to load
+    document.querySelectorAll('.reel-player').forEach(video => {{
+      video.addEventListener('error', function(e) {{
+        const errDiv = this.closest('.reel-card').querySelector('.video-error');
+        if (errDiv) {{
+          const src = this.querySelector('source');
+          const err = this.error;
+          errDiv.textContent = 'Video failed to load. Error: ' +
+            (err ? 'code=' + err.code + ' ' + (err.message || '') : 'unknown') +
+            '. Try Chrome or Firefox.';
+          errDiv.style.display = 'block';
         }}
       }});
 
-      video.addEventListener('pause', () => {{
-        playBtn.querySelector('.icon-play').style.display = 'block';
-        playBtn.querySelector('.icon-pause').style.display = 'none';
-      }});
-
-      video.addEventListener('play', () => {{
-        playBtn.querySelector('.icon-play').style.display = 'none';
-        playBtn.querySelector('.icon-pause').style.display = 'block';
-        overlay.classList.add('hidden');
-      }});
-
-      progressBar.addEventListener('click', (e) => {{
-        const rect = progressBar.getBoundingClientRect();
-        const pct = (e.clientX - rect.left) / rect.width;
-        video.currentTime = pct * video.duration;
-      }});
-
-      if (muteBtn) {{
-        muteBtn.addEventListener('click', () => {{
-          video.muted = !video.muted;
-          muteBtn.querySelector('.icon-muted').style.display = video.muted ? 'block' : 'none';
-          muteBtn.querySelector('.icon-unmuted').style.display = video.muted ? 'none' : 'block';
+      // Also listen on source elements
+      this.querySelectorAll && video.querySelectorAll('source').forEach(src => {{
+        src.addEventListener('error', function() {{
+          console.log('Source failed:', this.type);
         }});
-      }}
+      }});
     }});
   </script>
 </body>
@@ -436,14 +309,32 @@ def main():
     cards = []
     for reel in REELS[:count]:
         slug = reel["slug"]
+
+        # Find WebM
         webm_path = os.path.join(video_dir, f"{slug}.webm")
-        if not os.path.exists(webm_path):
-            print(f"  WARNING: {webm_path} not found, skipping")
+        webm_b64 = None
+        if os.path.exists(webm_path):
+            size = os.path.getsize(webm_path) / 1024 / 1024
+            print(f"  Embedding WebM: {slug}.webm ({size:.1f} MB)")
+            webm_b64 = _encode_b64(webm_path)
+        else:
+            print(f"  WARNING: {slug}.webm not found")
+
+        # Find MP4
+        mp4_path = os.path.join(video_dir, f"{slug}.mp4")
+        mp4_b64 = None
+        if os.path.exists(mp4_path):
+            size = os.path.getsize(mp4_path) / 1024 / 1024
+            print(f"  Embedding MP4:  {slug}.mp4 ({size:.1f} MB)")
+            mp4_b64 = _encode_b64(mp4_path)
+        else:
+            print(f"  WARNING: {slug}.mp4 not found")
+
+        if not webm_b64 and not mp4_b64:
+            print(f"  SKIPPING: no video files found for {slug}")
             continue
 
-        print(f"  Embedding: {slug}.webm ({os.path.getsize(webm_path)/1024/1024:.1f} MB)")
-        webm_b64 = _encode_b64(webm_path)
-        cards.append(build_reel_card(reel, webm_b64))
+        cards.append(build_reel_card(reel, webm_b64, mp4_b64))
 
     html = generate_reels_html("\n".join(cards), len(cards))
     outpath = "reels_showcase.html"
