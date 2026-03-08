@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Rider's Gang — Instagram Posts</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@400;500;600;700&display=swap');
+
+    :root {
+      --bg: #f5f0eb;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-secondary: #6b6259;
+      --border: #d4c9bc;
+      --accent: #8B6914;
+      --accent-dark: #2C1810;
+      --accent-light: #D4A843;
+      --gold: #C9A84C;
+      --cream: #F5E6C8;
+      --accent-gradient: linear-gradient(135deg, #2C1810, #8B6914, #D4A843);
+      --shadow: 0 2px 8px rgba(44,24,16,0.08), 0 1px 3px rgba(44,24,16,0.06);
+      --shadow-hover: 0 8px 24px rgba(44,24,16,0.12), 0 2px 8px rgba(44,24,16,0.08);
+      --radius: 8px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .hero {
+      background: var(--accent-gradient);
+      color: var(--cream);
+      text-align: center;
+      padding: 70px 20px 60px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 750px;
+      margin: 0 auto;
+    }
+    .hero h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 3rem;
+      font-weight: 900;
+      margin-bottom: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .hero .subtitle {
+      font-size: 1rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      opacity: 0.7;
+      margin-bottom: 8px;
+    }
+    .hero p {
+      font-size: 1.05rem;
+      opacity: 0.85;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .hero .stats {
+      display: flex;
+      justify-content: center;
+      gap: 50px;
+      margin-top: 35px;
+    }
+    .hero .stat { text-align: center; }
+    .hero .stat-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      font-weight: 900;
+      display: block;
+      color: var(--gold);
+    }
+    .hero .stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      opacity: 0.7;
+    }
+
+    .post-nav {
+      display: flex;
+      overflow-x: auto;
+      gap: 0;
+      padding: 0 20px;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 18px;
+      text-decoration: none;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .nav-item:hover {
+      border-bottom-color: var(--accent-light);
+      background: rgba(139,105,20,0.03);
+    }
+    .nav-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent-gradient);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+    .nav-title {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .posts-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .post-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: box-shadow 0.3s, transform 0.3s;
+    }
+    .post-card:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
+    }
+    .post-header {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .post-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--accent-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+    .post-username {
+      font-weight: 700;
+      font-size: 0.88rem;
+      display: block;
+    }
+    .post-category {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .post-number {
+      margin-left: auto;
+      color: var(--accent-light);
+      font-weight: 700;
+    }
+
+    .post-image-carousel .main-image {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+    }
+    .additional-images {
+      display: flex;
+      gap: 2px;
+      background: var(--border);
+    }
+    .additional-images img {
+      flex: 1;
+      height: 90px;
+      object-fit: cover;
+    }
+
+    .post-content { padding: 16px; }
+    .post-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .action-left { display: flex; gap: 16px; }
+    .icon {
+      width: 22px;
+      height: 22px;
+      fill: none;
+      stroke: var(--text);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .icon:hover { transform: scale(1.15); }
+    .post-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      line-height: 1.3;
+      color: var(--accent-dark);
+    }
+    .post-description {
+      font-size: 0.88rem;
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+    .post-quote {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      color: var(--accent-dark);
+      border-left: 3px solid var(--gold);
+      padding: 10px 16px;
+      margin: 14px 0;
+      font-size: 0.88rem;
+      background: linear-gradient(to right, rgba(212,168,67,0.08), transparent);
+      border-radius: 0 6px 6px 0;
+    }
+    .post-cta {
+      font-size: 0.84rem;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+    .post-hashtags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 14px;
+    }
+    .hashtag {
+      font-size: 0.75rem;
+      color: var(--accent);
+      background: rgba(139,105,20,0.08);
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-weight: 500;
+    }
+    .hashtag-more {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      padding: 3px 8px;
+    }
+    .post-link {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .post-link a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+    .post-link a:hover { opacity: 0.7; }
+    .read-time {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    footer {
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer .footer-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent-dark);
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 600px) {
+      .posts-container {
+        grid-template-columns: 1fr;
+        padding: 0 10px;
+      }
+      .hero h1 { font-size: 2rem; }
+      .hero .stats { gap: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="hero-content">
+      <div class="subtitle">Est. 2026</div>
+      <h1>The Rider's Gang</h1>
+      <p>Instagram posts crafted from stories about riding culture, equestrian fashion, and motorcycle heritage</p>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-num">10</span>
+          <span class="stat-label">Posts</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num">300</span>
+          <span class="stat-label">Hashtags</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num">5</span>
+          <span class="stat-label">Categories</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="post-nav">
+    <a href="#post-1" class="nav-item"><span class="nav-num">1</span><span class="nav-title">Coffee + Speed = A Whole Cultu...</span></a>
+<a href="#post-2" class="nav-item"><span class="nav-num">2</span><span class="nav-title">5,000 Years of the Perfect Bag</span></a>
+<a href="#post-3" class="nav-item"><span class="nav-num">3</span><span class="nav-title">The Shirt That Conquered the W...</span></a>
+<a href="#post-4" class="nav-item"><span class="nav-num">4</span><span class="nav-title">Born in the Saddle: The Real O...</span></a>
+<a href="#post-5" class="nav-item"><span class="nav-num">5</span><span class="nav-title">2,000 Years of Precision: The ...</span></a>
+<a href="#post-6" class="nav-item"><span class="nav-num">6</span><span class="nav-title">From Horse Harnesses to $200 B...</span></a>
+<a href="#post-7" class="nav-item"><span class="nav-num">7</span><span class="nav-title">The Jacket Worn on Every Great...</span></a>
+<a href="#post-8" class="nav-item"><span class="nav-num">8</span><span class="nav-title">A Horse Bit on a Shoe Changed ...</span></a>
+<a href="#post-9" class="nav-item"><span class="nav-num">9</span><span class="nav-title">500 Years on the Runway — and ...</span></a>
+<a href="#post-10" class="nav-item"><span class="nav-num">10</span><span class="nav-title">18,000 Feet. Zero Oxygen. One ...</span></a>
+  </nav>
+
+  <main class="posts-container">
+    
+    <article class="post-card" id="post-1">
+      <div class="post-header">
+        <div class="post-avatar">TRG</div>
+        <div class="post-meta">
+          <span class="post-username">theridergang</span>
+          <span class="post-category">Motorcycle Culture</span>
+        </div>
+        <span class="post-number">#1</span>
+      </div>
+
+      <div class="post-image-carousel">
+        <img src="https://images.unsplash.com/photo-1558981359-219d6364c9c8?w=1080&amp;h=1080&amp;fit=crop" alt="The Café Racer: How Coffee Gave Birth to Motorcycle Culture" loading="lazy" class="main-image">
+        <div class="additional-images">
+          <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=1080&amp;h=1080&amp;fit=crop" alt="Additional image" loading="lazy">
+<img src="https://images.unsplash.com/photo-1568708167256-1f385e6485f5?w=1080&amp;h=1080&amp;fit=crop" alt="Additional image" loading="lazy">
+
+        </div>
+      </div>
+
+      <div class="post-content">
+        <div class="post-actions">
+          <div class="action-left">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <svg class="icon" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </div>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
+
+        <h2 class="post-title">Coffee + Speed = A Whole Culture</h2>
+        <p class="post-description"><strong>theridergang</strong> In 1950s London, young rebels raced between coffee shops at 100 mph on stripped-down motorcycles. They called it &#x27;doing the ton&#x27; — racing to a roundabout and back before a jukebox song ended. These daredevils became the Ton-Up Boys, and their DIY ethos birthed the café racer movement that still defines motorcycle culture today. From the legendary Ace Café on the North Circular to modern Triumph and Ducati models — every café racer owes its soul to a cup of coffee and a 3-minute rock &#x27;n&#x27; roll song.</p>
+        <blockquote class="post-quote">"You&#x27;d hear the jukebox start...and suddenly the car park was empty. Everyone was on the North Circular, flat out."</blockquote>
+        <p class="post-cta">Link in bio to read the full story of how coffee fueled a revolution on two wheels!</p>
+
+        <div class="post-hashtags"><span class="hashtag">#CafeRacer</span> <span class="hashtag">#MotorcycleCulture</span> <span class="hashtag">#TonUpBoys</span> <span class="hashtag">#AceCafe</span> <span class="hashtag">#VintageMotorcycle</span> <span class="hashtag">#BikerLife</span> <span class="hashtag">#CafeRacerStyle</span> <span class="hashtag">#RidersGang</span> <span class="hashtag">#MotorcycleHistory</span> <span class="hashtag">#ClassicBikes</span> <span class="hashtag">#CafeRacerDreams</span> <span class="hashtag">#TwoWheels</span> <span class="hashtag">#RideOrDie</span> <span class="hashtag">#MotorcycleLifestyle</span> <span class="hashtag">#BikerCulture</span> <span class="hashtag-more">+15 more</span></div>
+
+        <div class="post-link">
+          <a href="https://shsingla22.github.io/TheRidersGangContent/articles/the-cafe-racer-how-coffee-gave-birth-to-motorcycle-culture.html" target="_blank" rel="noopener">
+            Read Full Article &rarr;
+          </a>
+          <span class="read-time">5 min read</span>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="post-card" id="post-2">
+      <div class="post-header">
+        <div class="post-avatar">TRG</div>
+        <div class="post-meta">
+          <span class="post-username">theridergang</span>
+          <span class="post-category">Riding Fashion</span>
+        </div>
+        <span class="post-number">#2</span>
+      </div>
+
+      <div class="post-image-carousel">
+        <img src="https://images.unsplash.com/photo-1473188588951-666fce8e7c68?w=1080&amp;h=1080&amp;fit=crop" alt="The Saddlebag: From Horse Leather to High Fashion" loading="lazy" class="main-image">
+        <div class="additional-images">
+          <img src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=1080&amp;h=1080&amp;fit=crop" alt="Additional image" loading="lazy">
+<img src="https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=1080&amp;h=1080&amp;fit=crop" alt="Additional image" loading="lazy">
+
+        </div>
+      </div>
+
+      <div class="post-content">
+        <div class="post-actions">
+          <div class="action-left">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <svg class="icon" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </div>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
+
+        <h2 class="post-title">5,000 Years of the Perfect Bag</h2>
+        <p class="post-description"><strong>theridergang</strong> Every luxury handbag traces its ancestry to a leather pouch strapped to a horse. From Persian cavalry warriors to medieval couriers, from American cowboys with tooled leather to Hermès transforming saddle carriers into the Kelly and Birkin bags — the saddlebag&#x27;s journey is fashion&#x27;s greatest origin story. When Galliano designed the Dior Saddle Bag in 1999, he wasn&#x27;t inventing anything new. He was paying tribute to 5,000 years of riders who needed their essentials close at hand.</p>
+        <blockquote class="post-quote">"Hermès didn&#x27;t become a luxury brand by accident. They simply pointed their skills at a different customer."</blockquote>
+        <p class="post-cta">Swipe through the evolution of riding gear to runway icon. Full story link in bio!</p>
+
+        <div class="post-hashtags"><span class="hashtag">#Saddlebag</span> <span class="hashtag">#LuxuryFashion</span> <span class="hashtag">#Hermes</span> <span class="hashtag">#DiorSaddleBag</span> <span class="hashtag">#EquestrianStyle</span> <span class="hashtag">#LeatherCraft</span> <span class="hashtag">#FashionHistory</span> <span class="hashtag">#HorseRiding</span> <span class="hashtag">#DesignerBags</span> <span class="hashtag">#BirkinBag</span> <span class="hashtag">#KellyBag</span> <span class="hashtag">#RidingFashion</span> <span class="hashtag">#FashionHeritage</span> <span class="hashtag">#LuxuryLeather</span> <span class="hashtag">#EquestrianHeritage</span> <span class="hashtag-more">+15 more</span></div>
+
+        <div class="post-link">
+          <a href="https://shsingla22.github.io/TheRidersGangContent/articles/the-saddlebag-from-horse-leather-to-high-fashion.html" target="_blank" rel="noopener">
+            Read Full Article &rarr;
+          </a>
+          <span class="read-time">5 min read</span>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="post-card" id="post-3">
+      <div class="post-header">
+        <div class="post-avatar">TRG</div>
+        <div class="post-meta">
+          <span class="post-username">theridergang</span>
+          <span class="post-category">Riding Fashion</span>
+        </div>
+        <span class="post-number">#3</span>
+      </div>
+
+      <div class="post-image-carousel">
+        <img src="https://images.unsplash.com/photo-1550126417-c0c9e38eba50?w=1080&amp;h=1080&amp;fit=crop" alt="The Polo Shirt: From Horseback to High Street" loading="lazy" class="main-image">
+        <div class="additional-images">
+          <img src="https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=1080&amp;h=1080&amp;fit=crop" alt="Additional image" loading="lazy">
+<img src="https://images.unsplash.com/photo-1564859228273-274232fdb516?w=1080&amp;h=1080&amp;fit=crop" alt="Additional image" loading="lazy">
+
+        </div>
+      </div>
+
+      <div class="post-content">
+        <div class="post-actions">
+          <div class="action-left">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <svg class="icon" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </div>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
+
+        <h2 class="post-title">The Shirt That Conquered the World — On Horseback</h2>
+        <p class="post-description"><strong>theridergang</strong> A sport played on horseback in 1850s India gave the world its most versatile garment. Victorian polo players hated their stiff collars flapping in the wind, so tennis legend René Lacoste engineered the fix — a soft-collared, breathable shirt that debuted at the 1926 US Open. Ralph Lauren turned it into a billion-dollar lifestyle symbol. Fred Perry&#x27;s version fueled British subcultures. Today, 2 BILLION polo shirts sell every year. From ancient Persian cavalry training to your wardrobe — all because a rider needed a better collar.</p>
+        <blockquote class="post-quote">"The polo shirt signals both old-money privilege and working-class rebellion, conformity and independence."</blockquote>
+        <p class="post-cta">The full story of fashion&#x27;s most democratic garment is in the link in bio!</p>
+
+        <div class="post-hashtags"><span class="hashtag">#PoloShirt</span> <span class="hashtag">#RalphLauren</span> <span class="hashtag">#Lacoste</span> <span class="hashtag">#FredPerry</span> <span class="hashtag">#PoloSport</span> <span class="hashtag">#EquestrianFashion</span> <span class="hashtag">#FashionHistory</span> <span class="hashtag">#PrepStyle</span> <span class="hashtag">#ClassicFashion</span> <span class="hashtag">#PoloStyle</span> <span class="hashtag">#Menswear</span> <span class="hashtag">#Womenswear</span> <span class="hashtag">#StreetStyle</span> <span class="hashtag">#SportsFashion</span> <span class="hashtag">#HorsebackRiding</span> <span class="hashtag-more">+15 more</span></div>
+
+        <div class="post-link">
+          <a href="https://shsingla22.github.io/TheRidersGangContent/articles/the-polo-shirt-from-horseback-to-high-street.html" target="_blank" rel="noopener">
+            Read Full Article &rarr;
+          </a>
+          <span class="read-time">5 min read</span>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="post-card" id="post-4">
+      <div class="post-header">
+        <div class="post-avatar">TRG</div>
+        <div class="post-meta">
+          <span class="post-username">theridergang</span>
+          <span class="post-category">Riding Fashion</span>
+        </div>
+        <span class="post-number">#4</span>
+      </div>
+
+      <div class="post-image-carousel">
+        <img src="https://images.unsplash.com/photo-1542272604-787c3835535d?w=1080&amp;h=1080&amp;fit=crop" alt="Denim and the Rider: How Jeans Were Born in the Saddle" loading="lazy" class="main-image">
+        <div class="additional-images">
+          <img src="https://images.unsplash.com/photo-1582552938357-32b906df40cb?w=1080&amp;h=1080&amp;fit=crop" alt="Additional image" loading="lazy">
+<img src="https://images.unsplash.com/photo-1565084888279-aca607ecce0c?w=1080&amp;h=1080&amp;fit=crop" alt="Additional image" loading="lazy">
+
+        </div>
+      </div>
+
+      <div class="post-content">
+        <div class="post-actions">
+          <div class="action-left">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <svg class="icon" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </div>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
+
+        <h2 class="post-title">Born in the Saddle: The Real Origin of Your Jeans</h2>
+        <p class="post-description"><strong>theridergang</strong> In 1873, a tailor added copper rivets to stop cowboys&#x27; pockets from tearing on horseback — and accidentally invented the most iconic garment in history. Denim survived 14-hour saddle days, hid trail dirt with indigo dye, and resisted desert thorns. Wrangler engineered the &#x27;Cowboy Cut&#x27; specifically for rodeo riders. Then James Dean and Marlon Brando made jeans cool forever. Your favourite pair still carries those original copper rivets — a 150-year-old rider&#x27;s innovation.</p>
+        <blockquote class="post-quote">"The cowboy didn&#x27;t choose denim. Denim chose the cowboy — because nothing else could survive the life he lived."</blockquote>
+        <p class="post-cta">Read the incredible journey from saddle to streetwear — link in bio!</p>
+
+        <div class="post-hashtags"><span class="hashtag">#Denim</span> <span class="hashtag">#JeansHistory</span> <span class="hashtag">#LeviStrauss</span> <span class="hashtag">#Wrangler</span> <span class="hashtag">#CowboyStyle</span> <span class="hashtag">#WesternWear</span> <span class="hashtag">#DenimLove</span> <span class="hashtag">#JeansCulture</span> <span class="hashtag">#VintageDenim</span> <span class="hashtag">#RawDenim</span> <span class="hashtag">#DenimOnDenim</span> <span class="hashtag">#CowboyCulture</span> <span class="hashtag">#RodeoStyle</span> <span class="hashtag">#AmericanWest</span> <span class="hashtag">#FashionHistory</span> <span class="hashtag-more">+15 more</span></div>
+
+        <div class="post-link">
+          <a href="https://shsingla22.github.io/TheRidersGangContent/articles/denim-and-the-rider-how-jeans-were-born-in-the-saddle.html" target="_blank" rel="noopener">
+            Read Full Article &rarr;
+          </a>
+          <span class="read-time">5 min read</span>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="post-card" id="post-5">
+      <div class="post-header">
+        <div class="post-avatar">TRG</div>
+        <div class="post-meta">
+          <span class="post-username">theridergang</span>
+          <span class="post-category">Equestrian Heritage</span>
+        </div>
+        <span class="post-number">#5</span>
+      </div>
+
+      <div class="post-image-carousel">
+        <img src="https://images.unsplash.com/photo-1598974357801-cbca100e65d3?w=1080&amp;h=1080&amp;fit=crop" alt="The Riding Crop: From Horse Command to Fashion Icon" loading="lazy" class="main-image">
+        <div class="additional-images">
+          <img src="https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=1080&amp;h=1080&amp;fit=crop" alt="Additional image" loading="lazy">
+<img src="https://images.unsplash.com/photo-1566251037378-5e04e3bec343?w=1080&amp;h=1080&amp;fit=crop" alt="Additional image" loading="lazy">
+
+        </div>
+      </div>
+
+      <div class="post-content">
+        <div class="post-actions">
+          <div class="action-left">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <svg class="icon" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </div>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
+
+        <h2 class="post-title">2,000 Years of Precision: The Riding Crop Story</h2>
+        <p class="post-description"><strong>theridergang</strong> For 2,000 years, a short leather instrument has connected rider to horse. Roman cavalry soldiers used leather flagella for battlefield communication. Today&#x27;s dressage riders use crops as precise extensions of their leg aids — not force, but conversation. London&#x27;s Swaine Adeney has been handcrafting them since 1750, with layered gut shafts and braided leather passed through generations. From ancient warfare to modern runways, the riding crop has never lost its power.</p>
+        <blockquote class="post-quote">"The crop is not about force. It&#x27;s about conversation — a language between rider and horse refined over millennia."</blockquote>
+        <p class="post-cta">Discover the fascinating 2,000-year journey — full article link in bio!</p>
+
+        <div class="post-hashtags"><span class="hashtag">#RidingCrop</span> <span class="hashtag">#Equestrian</span> <span class="hashtag">#HorseRiding</span> <span class="hashtag">#Dressage</span> <span class="hashtag">#EquestrianLife</span> <span class="hashtag">#HorseLove</span> <span class="hashtag">#EquestrianStyle</span> <span class="hashtag">#ShowJumping</span> <span class="hashtag">#HorsebackRiding</span> <span class="hashtag">#EquestrianFashion</span> <span class="hashtag">#HorseCulture</span> <span class="hashtag">#EquestrianHeritage</span> <span class="hashtag">#RidingLife</span> <span class="hashtag">#HorseWorld</span> <span class="hashtag">#TheRidersGang</span> <span class="hashtag-more">+15 more</span></div>
+
+        <div class="post-link">
+          <a href="https://shsingla22.github.io/TheRidersGangContent/articles/the-riding-crop-from-horse-command-to-fashion-icon.html" target="_blank" rel="noopener">
+            Read Full Article &rarr;
+          </a>
+          <span class="read-time">5 min read</span>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="post-card" id="post-6">
+      <div class="post-header">
+        <div class="post-avatar">TRG</div>
+        <div class="post-meta">
+          <span class="post-username">theridergang</span>
+          <span class="post-category">Equestrian Heritage</span>
+        </div>
+        <span class="post-number">#6</span>
+      </div>
+
+      <div class="post-image-carousel">
+        <img src="https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=1080&amp;h=1080&amp;fit=crop" alt="Hermès: From Horse Harnesses to High Fashion" loading="lazy" class="main-image">
+        <div class="additional-images">
+          <img src="https://images.unsplash.com/photo-1598974357801-cbca100e65d3?w=1080&amp;h=1080&amp;fit=crop" alt="Additional image" loading="lazy">
+<img src="https://images.unsplash.com/photo-1566251037378-5e04e3bec343?w=1080&amp;h=1080&amp;fit=crop" alt="Additional image" loading="lazy">
+
+        </div>
+      </div>
+
+      <div class="post-content">
+        <div class="post-actions">
+          <div class="action-left">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <svg class="icon" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </div>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
+
+        <h2 class="post-title">From Horse Harnesses to $200 Billion: The Hermès Story</h2>
+        <p class="post-description"><strong>theridergang</strong> In 1837, Thierry Hermès opened a Paris workshop making horse harnesses. When automobiles replaced horses, his family didn&#x27;t panic — they turned their legendary leather skills toward handbags. The Kelly bag? Originally a saddle carrier. Each one takes 18-24 hours of hand-stitching using the same saddle stitch technique from the original harnesses. The Birkin? 48 hours per piece. Some sell for $400,000+. Today Hermès is worth over $200 billion, but the horse remains at its heart.</p>
+        <blockquote class="post-quote">"The horse is the heart of Hermès. It lives in every stitch, every buckle, every piece of leather we touch."</blockquote>
+        <p class="post-cta">The full Hermès origin story is unlike anything you&#x27;ve read — link in bio!</p>
+
+        <div class="post-hashtags"><span class="hashtag">#Hermes</span> <span class="hashtag">#HermèsParis</span> <span class="hashtag">#KellyBag</span> <span class="hashtag">#BirkinBag</span> <span class="hashtag">#LuxuryFashion</span> <span class="hashtag">#HighFashion</span> <span class="hashtag">#FashionHistory</span> <span class="hashtag">#EquestrianHeritage</span> <span class="hashtag">#ParisianLuxury</span> <span class="hashtag">#HandCrafted</span> <span class="hashtag">#LeatherCraft</span> <span class="hashtag">#SaddleStitch</span> <span class="hashtag">#DesignerBags</span> <span class="hashtag">#FashionIcon</span> <span class="hashtag">#LuxuryBrand</span> <span class="hashtag-more">+15 more</span></div>
+
+        <div class="post-link">
+          <a href="https://shsingla22.github.io/TheRidersGangContent/articles/hermes-from-horse-harnesses-to-high-fashion.html" target="_blank" rel="noopener">
+            Read Full Article &rarr;
+          </a>
+          <span class="read-time">5 min read</span>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="post-card" id="post-7">
+      <div class="post-header">
+        <div class="post-avatar">TRG</div>
+        <div class="post-meta">
+          <span class="post-username">theridergang</span>
+          <span class="post-category">Motorcycle Culture</span>
+        </div>
+        <span class="post-number">#7</span>
+      </div>
+
+      <div class="post-image-carousel">
+        <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=1080&amp;h=1080&amp;fit=crop" alt="Belstaff: The Jacket That Built a Riding Legend" loading="lazy" class="main-image">
+        <div class="additional-images">
+          <img src="https://images.unsplash.com/photo-1568708167256-1f385e6485f5?w=1080&amp;h=1080&amp;fit=crop" alt="Additional image" loading="lazy">
+<img src="https://images.unsplash.com/photo-1585640120759-e47f0048cbf3?w=1080&amp;h=1080&amp;fit=crop" alt="Additional image" loading="lazy">
+
+        </div>
+      </div>
+
+      <div class="post-content">
+        <div class="post-actions">
+          <div class="action-left">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <svg class="icon" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </div>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
+
+        <h2 class="post-title">The Jacket Worn on Every Great Motorcycle Journey</h2>
+        <p class="post-description"><strong>theridergang</strong> In 1924, Harry Grosberg coated Egyptian cotton with wax and created the ultimate motorcycle jacket. The Trialmaster — built for grueling off-road competition — became the jacket of legends. Che Guevara wore one across South America. Steve McQueen got muddy in one at the 1964 International Six Days Trial. London&#x27;s Ton-Up Boys made it the uniform of café racer culture. 100 years later, Belstaff still makes them the same way. Some legends never need updating.</p>
+        <blockquote class="post-quote">"Belstaff jackets have been worn on every great motorcycle journey of the twentieth century."</blockquote>
+        <p class="post-cta">Read the century-long story of the world&#x27;s greatest riding jacket — link in bio!</p>
+
+        <div class="post-hashtags"><span class="hashtag">#Belstaff</span> <span class="hashtag">#MotorcycleJacket</span> <span class="hashtag">#WaxedCotton</span> <span class="hashtag">#Trialmaster</span> <span class="hashtag">#SteveMcQueen</span> <span class="hashtag">#MotorcycleCulture</span> <span class="hashtag">#BikerJacket</span> <span class="hashtag">#VintageMotorcycle</span> <span class="hashtag">#CafeRacer</span> <span class="hashtag">#RidingGear</span> <span class="hashtag">#BritishHeritage</span> <span class="hashtag">#MotorcycleLife</span> <span class="hashtag">#BikerStyle</span> <span class="hashtag">#ClassicMotorcycle</span> <span class="hashtag">#TheRidersGang</span> <span class="hashtag-more">+15 more</span></div>
+
+        <div class="post-link">
+          <a href="https://shsingla22.github.io/TheRidersGangContent/articles/belstaff-the-jacket-that-built-a-riding-legend.html" target="_blank" rel="noopener">
+            Read Full Article &rarr;
+          </a>
+          <span class="read-time">5 min read</span>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="post-card" id="post-8">
+      <div class="post-header">
+        <div class="post-avatar">TRG</div>
+        <div class="post-meta">
+          <span class="post-username">theridergang</span>
+          <span class="post-category">Riding Fashion</span>
+        </div>
+        <span class="post-number">#8</span>
+      </div>
+
+      <div class="post-image-carousel">
+        <img src="https://images.unsplash.com/photo-1615979474401-8a6a344de5bd?w=1080&amp;h=1080&amp;fit=crop" alt="The Gucci Horsebit Loafer: Born in the Saddle" loading="lazy" class="main-image">
+        <div class="additional-images">
+          <img src="https://images.unsplash.com/photo-1576792741377-eb0f4f6d1a47?w=1080&amp;h=1080&amp;fit=crop" alt="Additional image" loading="lazy">
+<img src="https://images.unsplash.com/photo-1655664994589-c18d906f7ed4?w=1080&amp;h=1080&amp;fit=crop" alt="Additional image" loading="lazy">
+
+        </div>
+      </div>
+
+      <div class="post-content">
+        <div class="post-actions">
+          <div class="action-left">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <svg class="icon" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </div>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
+
+        <h2 class="post-title">A Horse Bit on a Shoe Changed Fashion Forever</h2>
+        <p class="post-description"><strong>theridergang</strong> In 1953, Aldo Gucci took a snaffle bit — the metal device riders use to communicate with horses — miniaturized it in gold-toned metal, and placed it on a black calfskin loafer. It became the shoe of presidents, movie stars, and Wall Street traders who called them &#x27;deal sleds.&#x27; In 1985, the Met Museum acquired one for its permanent collection — the ONLY shoe ever given that honor. When Gucci nearly died in the &#x27;90s, Tom Ford brought it back and saved the brand.</p>
+        <blockquote class="post-quote">"The snaffle bit was made to help a rider talk to a horse. That it became a fashion icon is one of the great surprises of the twentieth century."</blockquote>
+        <p class="post-cta">From horse riding to the Met Museum — read the incredible story. Link in bio!</p>
+
+        <div class="post-hashtags"><span class="hashtag">#Gucci</span> <span class="hashtag">#GucciLoafer</span> <span class="hashtag">#HorsebitLoafer</span> <span class="hashtag">#LuxuryShoes</span> <span class="hashtag">#ItalianFashion</span> <span class="hashtag">#DesignerShoes</span> <span class="hashtag">#TomFord</span> <span class="hashtag">#GucciFashion</span> <span class="hashtag">#EquestrianStyle</span> <span class="hashtag">#FashionHistory</span> <span class="hashtag">#IconicDesign</span> <span class="hashtag">#LuxuryFootwear</span> <span class="hashtag">#ClassicStyle</span> <span class="hashtag">#WallStreetStyle</span> <span class="hashtag">#TheRidersGang</span> <span class="hashtag-more">+15 more</span></div>
+
+        <div class="post-link">
+          <a href="https://shsingla22.github.io/TheRidersGangContent/articles/the-gucci-horsebit-loafer-born-in-the-saddle.html" target="_blank" rel="noopener">
+            Read Full Article &rarr;
+          </a>
+          <span class="read-time">5 min read</span>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="post-card" id="post-9">
+      <div class="post-header">
+        <div class="post-avatar">TRG</div>
+        <div class="post-meta">
+          <span class="post-username">theridergang</span>
+          <span class="post-category">Boots &amp; Shoes</span>
+        </div>
+        <span class="post-number">#9</span>
+      </div>
+
+      <div class="post-image-carousel">
+        <img src="https://images.unsplash.com/photo-1722109283665-05e8a7db546e?w=1080&amp;h=1080&amp;fit=crop" alt="Riding Boots: From Cavalry to Catwalk" loading="lazy" class="main-image">
+        <div class="additional-images">
+          <img src="https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=1080&amp;h=1080&amp;fit=crop" alt="Additional image" loading="lazy">
+<img src="https://images.unsplash.com/photo-1598974357801-cbca100e65d3?w=1080&amp;h=1080&amp;fit=crop" alt="Additional image" loading="lazy">
+
+        </div>
+      </div>
+
+      <div class="post-content">
+        <div class="post-actions">
+          <div class="action-left">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <svg class="icon" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </div>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
+
+        <h2 class="post-title">500 Years on the Runway — and Still Going Strong</h2>
+        <p class="post-description"><strong>theridergang</strong> Every design detail of riding boots serves a purpose: the tall shaft protects from saddle rub, the smooth sole slides into stirrups, the angled heel prevents slipping through. The Duke of Wellington redesigned them in 1817. Indian royalty created the jodhpur boot in Rajasthan. Italian craftsmen at De Niro hide a lucky penny in each pair. Today, search interest is up 260% and brands like Hermès, Chanel, and Ralph Lauren put them on every runway. Five centuries of proof that great design never goes out of style.</p>
+        <blockquote class="post-quote">"The riding boot didn&#x27;t become fashionable because designers chose it. It became fashionable because its design was already perfect."</blockquote>
+        <p class="post-cta">From cavalry charges to fashion week — the full boot story awaits. Link in bio!</p>
+
+        <div class="post-hashtags"><span class="hashtag">#RidingBoots</span> <span class="hashtag">#EquestrianFashion</span> <span class="hashtag">#BootsOfInstagram</span> <span class="hashtag">#CavalryBoots</span> <span class="hashtag">#FashionBoots</span> <span class="hashtag">#EquestrianStyle</span> <span class="hashtag">#HorseRiding</span> <span class="hashtag">#BootLove</span> <span class="hashtag">#WellingtonBoots</span> <span class="hashtag">#JodhpurBoots</span> <span class="hashtag">#Ariat</span> <span class="hashtag">#DeNiroBoots</span> <span class="hashtag">#ItalianCraftsmanship</span> <span class="hashtag">#TheRidersGang</span> <span class="hashtag">#RidersGang</span> <span class="hashtag-more">+15 more</span></div>
+
+        <div class="post-link">
+          <a href="https://shsingla22.github.io/TheRidersGangContent/articles/riding-boots-from-cavalry-to-catwalk.html" target="_blank" rel="noopener">
+            Read Full Article &rarr;
+          </a>
+          <span class="read-time">5 min read</span>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="post-card" id="post-10">
+      <div class="post-header">
+        <div class="post-avatar">TRG</div>
+        <div class="post-meta">
+          <span class="post-username">theridergang</span>
+          <span class="post-category">Motorcycle Lifestyle</span>
+        </div>
+        <span class="post-number">#10</span>
+      </div>
+
+      <div class="post-image-carousel">
+        <img src="https://images.unsplash.com/photo-1670644654521-6fbfffeaba87?w=1080&amp;h=1080&amp;fit=crop" alt="Leh-Ladakh: The Ride That Changes Everything" loading="lazy" class="main-image">
+        <div class="additional-images">
+          <img src="https://images.unsplash.com/photo-1609766856923-7e0a7a3084e4?w=1080&amp;h=1080&amp;fit=crop" alt="Additional image" loading="lazy">
+<img src="https://images.unsplash.com/photo-1591378603223-e15b45a81640?w=1080&amp;h=1080&amp;fit=crop" alt="Additional image" loading="lazy">
+
+        </div>
+      </div>
+
+      <div class="post-content">
+        <div class="post-actions">
+          <div class="action-left">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <svg class="icon" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </div>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
+
+        <h2 class="post-title">18,000 Feet. Zero Oxygen. One Life-Changing Ride.</h2>
+        <p class="post-description"><strong>theridergang</strong> Khardung La at 5,359 metres. Oxygen-thin air. Roads that disappear into rivers. The Leh-Ladakh motorcycle journey isn&#x27;t a vacation — it&#x27;s a pilgrimage. Riders on Royal Enfields cross multiple Himalayan passes through landscapes that look like another planet. India&#x27;s motorcycle heritage runs deep — Royal Enfield has been made there since 1955, serving the military, postal service, and now millions of adventure seekers. The Bikerni women&#x27;s riding group with 2,500 members proves this journey belongs to everyone.</p>
+        <blockquote class="post-quote">"You don&#x27;t ride because it&#x27;s easy. You ride because it&#x27;s the hardest thing you&#x27;ve done — and because the mountains don&#x27;t care who you are."</blockquote>
+        <p class="post-cta">Ready to understand why riders say Ladakh changes your life? Full story — link in bio!</p>
+
+        <div class="post-hashtags"><span class="hashtag">#LehLadakh</span> <span class="hashtag">#Ladakh</span> <span class="hashtag">#RoyalEnfield</span> <span class="hashtag">#HimalayanRide</span> <span class="hashtag">#MotorcycleTravel</span> <span class="hashtag">#AdventureRiding</span> <span class="hashtag">#KhardungLa</span> <span class="hashtag">#IndiaRide</span> <span class="hashtag">#BikerTravel</span> <span class="hashtag">#MotorcycleAdventure</span> <span class="hashtag">#Himalaya</span> <span class="hashtag">#MountainRide</span> <span class="hashtag">#RoadTrip</span> <span class="hashtag">#MotorcycleTrip</span> <span class="hashtag">#TheRidersGang</span> <span class="hashtag-more">+15 more</span></div>
+
+        <div class="post-link">
+          <a href="https://shsingla22.github.io/TheRidersGangContent/articles/leh-ladakh-the-ride-that-changes-everything.html" target="_blank" rel="noopener">
+            Read Full Article &rarr;
+          </a>
+          <span class="read-time">6 min read</span>
+        </div>
+      </div>
+    </article>
+    
+  </main>
+
+  <footer>
+    <p class="footer-brand">The Rider's Gang</p>
+    <p>Instagram Posts Module</p>
+    <p style="margin-top: 6px">Source: <a href="https://shsingla22.github.io/TheRidersGangContent/index.html#articles" target="_blank">TheRidersGangContent</a></p>
+  </footer>
+
+  <script>
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = document.querySelector(item.getAttribute('href'));
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+  </script>
+</body>
+</html>
