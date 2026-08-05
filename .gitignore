@@ -2,3 +2,4 @@ __pycache__/
 *.pyc
 output/videos/.tmp_*/
 output/short_videos/.photo_cache/
+output/short_videos/.prompt_embeds.pt
