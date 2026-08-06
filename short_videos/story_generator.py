@@ -24,14 +24,14 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 MODEL_ID = "Lightricks/LTX-Video"
 
-WIDTH = 576
-HEIGHT = 1024          # exact 9:16, higher detail than the 512x896 pass
+WIDTH = 448
+HEIGHT = 800           # CPU-feasible size; clarity comes from lighting + framing
 NUM_FRAMES = 49
 FPS = 24
 
 STYLE = (
-    "1950s London, evening, cinematic 35mm film footage, warm golden "
-    "streetlight and neon glow, well-lit subjects, sharp focus, highly "
+    "1950s London, golden hour dusk, cinematic 35mm film footage, warm "
+    "orange sunset light, brightly lit subjects, sharp focus, highly "
     "detailed, crisp clear image, smooth camera motion"
 )
 
@@ -72,12 +72,12 @@ STORYBOARD = [
     },
     {
         "id": "03_kickstart",
-        "seed": 313,
+        "seed": 323,
         "prompt": (
-            "A rider in a black leather jacket sitting on a vintage cafe racer "
-            "motorcycle under a bright streetlamp at night, kick-starting the "
-            "engine, chrome tank gleaming in warm lamplight, headlight glowing "
-            "bright, well-lit scene, clearly visible rider and motorcycle, "
+            "Medium close-up of a rider in a black leather jacket kick-starting "
+            "a gleaming vintage cafe racer motorcycle at golden hour, warm "
+            "sunset light on his face and the polished chrome fuel tank, the "
+            "motorcycle fills the frame, every detail clearly visible, "
             + STYLE
         ),
         "caption": "Reach 100 mph — and be back\nbefore the record ends.",
@@ -85,36 +85,37 @@ STORYBOARD = [
     },
     {
         "id": "04_race",
-        "seed": 414,
+        "seed": 424,
         "prompt": (
-            "A vintage cafe racer motorcycle speeding down a city street lined "
-            "with bright streetlights in the evening, rider in black leather "
-            "tucked low over the chrome fuel tank, motorcycle clearly visible "
-            "and well-lit, tracking shot alongside the motorcycle, " + STYLE
+            "A vintage cafe racer motorcycle and rider filling the frame, "
+            "racing down a city street at golden hour, warm sunset backlight, "
+            "rider in black leather tucked low over the chrome tank, spoked "
+            "wheels and engine clearly visible, tracking shot alongside the "
+            "speeding motorcycle, " + STYLE
         ),
         "caption": "They called it\n“doing the ton.”",
         "eyebrow": "100 MPH",
     },
     {
         "id": "05_corner",
-        "seed": 515,
+        "seed": 525,
         "prompt": (
-            "A vintage motorcycle with a bright glowing headlight leaning into "
-            "a bend on a well-lit city street at night, rider clearly visible "
-            "in leather jacket, rows of streetlights illuminating wet asphalt, "
-            "low tracking camera following the motorcycle, " + STYLE
+            "Medium shot of a vintage cafe racer motorcycle leaning into a "
+            "corner at speed at golden hour, rider in black leather clearly "
+            "visible against the warm orange sky, dramatic sunset side light "
+            "on the bike, low camera following the motorcycle, " + STYLE
         ),
         "caption": "No second chances.\nNo slowing down.",
         "eyebrow": "FLAT OUT",
     },
     {
         "id": "06_return",
-        "seed": 616,
+        "seed": 626,
         "prompt": (
-            "A rider on a vintage motorcycle pulling up outside a brightly "
-            "neon-lit cafe and coming to a stop, other riders clearly visible "
-            "cheering and raising their hands, faces lit by warm cafe light, "
-            "triumphant mood, " + STYLE
+            "A rider on a vintage motorcycle pulling up in the foreground "
+            "outside a cafe at golden hour dusk and coming to a stop, a group "
+            "of riders close to camera cheering with raised hands, faces "
+            "clearly lit by warm sunset light, triumphant mood, " + STYLE
         ),
         "caption": "The ones who made it back\nbecame legends.",
         "eyebrow": "THE TON-UP BOYS",
@@ -195,8 +196,13 @@ def stage2_generate_all(embeds_dir: str, steps: int) -> None:
 
 def main():
     parser = argparse.ArgumentParser(description="Generate story scenes")
-    parser.add_argument("--steps", type=int, default=45)
+    parser.add_argument("--steps", type=int, default=28)
+    parser.add_argument("--only", type=str, default=None,
+                        help="Comma-separated scene ids to (re)generate")
     args = parser.parse_args()
+    if args.only:
+        wanted = set(args.only.split(","))
+        STORYBOARD[:] = [s for s in STORYBOARD if s["id"] in wanted]
 
     os.makedirs(STORY_DIR, exist_ok=True)
     embeds_dir = os.path.join(STORY_DIR, ".embeds")

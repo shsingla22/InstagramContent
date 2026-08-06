@@ -266,9 +266,10 @@ def preprocess_scene(clip: str, overlay: str, out: str) -> None:
         "-filter_complex",
         "[0:v]minterpolate=fps=54:mi_mode=mci:mc_mode=aobmc:vsbmc=1,"
         "setpts=2.25*PTS,"
-        "scale=-2:1920:flags=lanczos,crop=1080:1920,"
+        "scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos,"
+        "crop=1080:1920,"
         "hqdn3d=1.5:1.5:4:4,"
-        "eq=brightness=0.06:contrast=1.10:saturation=1.10,"
+        "eq=gamma=1.15:brightness=0.04:contrast=1.08:saturation=1.08,"
         "cas=0.45,"
         "unsharp=5:5:0.5:5:5:0.0[v];"
         f"[v][1:v]overlay=0:0,"
