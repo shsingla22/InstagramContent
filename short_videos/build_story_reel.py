@@ -5,9 +5,12 @@ Story Reel Builder — assembles the 6 AI-generated scenes into a
     title card → 6 captioned scenes (silent-film style) → outro CTA
 
 Per scene: frame-interpolated 2.25x slow motion, upscale to
-1080x1920 with sharpening, vignette + serif caption overlay, and
-film-style fade cuts. Vinyl audio bed underneath, H.264+AAC
-faststart output.
+1080x1920 with sharpening and a gentle brightness/contrast lift,
+vignette + serif captions (auto-fitted so text never overflows),
+and film-style fade cuts. Scene 1 gets a designed "ACE CAFE" neon
+sign (diffusion models cannot spell, so the sign is composited).
+A designed poster is embedded as the MP4 thumbnail, and the film
+opens on a fully visible title card (no black first frame).
 
 Run:  python3 -m short_videos.build_story_reel
 """
@@ -28,22 +31,58 @@ from short_videos import (
     PALETTE,
 )
 from short_videos.audio_bed import build_audio_bed
-from short_videos.generator import _draw_tracked_text, _load_font
+from short_videos.generator import _load_font
 from short_videos.retro_look import make_vignette
 from short_videos.story_generator import STORY_DIR, STORYBOARD
 
 OUT_PATH = "output/short_videos/reel_ai_story_cafe_racer.mp4"
+THUMB_PATH = "output/short_videos/reel_ai_story_thumbnail.jpg"
 
 TITLE_SEC = 2.5
 OUTRO_SEC = 3.0
 SLOW_FACTOR = 2.25          # 49 frames @24fps → ~4.6s per scene
 FADE_SEC = 0.3
+MAX_TEXT_WIDTH = int(FRAME_WIDTH * 0.88)   # text must stay inside this
 
 GOLD = PALETTE["gold"] + (255,)
 CREAM = PALETTE["cream"] + (255,)
 
 
-def _vignette_layer(strength: float = 0.5) -> Image.Image:
+# ── Text helpers (auto-fit: never overflow the frame) ────────────────
+
+def _tracked_width(draw, text, font, tracking):
+    widths = [draw.textlength(ch, font=font) for ch in text]
+    return sum(widths) + tracking * max(0, len(text) - 1)
+
+
+def fit_font(draw, text, font_path, size, tracking=0, max_width=MAX_TEXT_WIDTH):
+    """Shrink the font size until `text` fits inside max_width."""
+    while size > 18:
+        font = _load_font(font_path, size)
+        if _tracked_width(draw, text, font, tracking) <= max_width:
+            return font
+        size -= 2
+    return _load_font(font_path, 18)
+
+
+def draw_tracked_fit(draw, xy, text, font_path, size, fill, tracking=0):
+    """Letterspaced centered text, auto-shrunk to fit the frame."""
+    font = fit_font(draw, text, font_path, size, tracking)
+    widths = [draw.textlength(ch, font=font) for ch in text]
+    total = sum(widths) + tracking * max(0, len(text) - 1)
+    x = xy[0] - total / 2.0
+    for ch, w in zip(text, widths):
+        draw.text((x, xy[1]), ch, font=font, fill=fill, anchor="lm")
+        x += w + tracking
+
+
+def draw_plain_fit(draw, xy, text, font_path, size, fill):
+    """Centered text, auto-shrunk to fit the frame."""
+    font = fit_font(draw, text, font_path, size)
+    draw.text(xy, text, font=font, fill=fill, anchor="mm")
+
+
+def _vignette_layer(strength: float = 0.35) -> Image.Image:
     vig = make_vignette(FRAME_WIDTH, FRAME_HEIGHT, strength=strength)[..., 0]
     alpha = ((1.0 - vig) * 255).clip(0, 255).astype("uint8")
     layer = Image.new("RGBA", (FRAME_WIDTH, FRAME_HEIGHT), (5, 3, 2, 255))
@@ -59,26 +98,76 @@ def _with_shadow(ov: Image.Image) -> Image.Image:
     return base
 
 
+# ── Designed elements ────────────────────────────────────────────────
+
+def draw_neon_sign(ov: Image.Image, center, text="ACE CAFE") -> None:
+    """
+    Composite a glowing neon sign. Diffusion models cannot spell, so
+    the cafe name is rendered as a designed neon graphic instead.
+    """
+    cx, cy = center
+    draw = ImageDraw.Draw(ov)
+    font = _load_font(FONT_SERIF_BOLD, 86)
+
+    # dark backing panel to cover the AI-generated gibberish sign
+    w = _tracked_width(draw, text, font, 10)
+    pad_x, pad_y = 70, 55
+    panel = Image.new("RGBA", (int(w + pad_x * 2), int(140 + pad_y)), (16, 6, 4, 235))
+    panel = panel.filter(ImageFilter.GaussianBlur(14))
+    ov.alpha_composite(panel, (int(cx - panel.width / 2), int(cy - panel.height / 2)))
+
+    # neon glow: blurred red-orange layers under a hot bright core
+    glow = Image.new("RGBA", ov.size, (0, 0, 0, 0))
+    gdraw = ImageDraw.Draw(glow)
+    x = cx - w / 2.0
+    for ch in text:
+        cw = gdraw.textlength(ch, font=font)
+        gdraw.text((x, cy), ch, font=font, fill=(255, 60, 20, 255), anchor="lm")
+        x += cw + 10
+    for radius, alpha in ((18, 130), (8, 180)):
+        layer = glow.filter(ImageFilter.GaussianBlur(radius))
+        a = layer.getchannel("A").point(lambda v, m=alpha: min(v, m))
+        layer.putalpha(a)
+        ov.alpha_composite(layer)
+
+    core = Image.new("RGBA", ov.size, (0, 0, 0, 0))
+    cdraw = ImageDraw.Draw(core)
+    x = cx - w / 2.0
+    for ch in text:
+        cw = cdraw.textlength(ch, font=font)
+        cdraw.text((x, cy), ch, font=font, fill=(255, 210, 150, 255), anchor="lm")
+        x += cw + 10
+    ov.alpha_composite(core)
+
+    # thin neon border tube around the panel
+    bx0 = cx - panel.width / 2 + 18
+    by0 = cy - panel.height / 2 + 16
+    bx1 = cx + panel.width / 2 - 18
+    by1 = cy + panel.height / 2 - 16
+    border = Image.new("RGBA", ov.size, (0, 0, 0, 0))
+    ImageDraw.Draw(border).rounded_rectangle(
+        [bx0, by0, bx1, by1], radius=18, outline=(255, 90, 40, 220), width=4)
+    ov.alpha_composite(border.filter(ImageFilter.GaussianBlur(1)))
+
+
 def build_title_card(path: str) -> None:
     img = Image.new("RGBA", (FRAME_WIDTH, FRAME_HEIGHT),
                     PALETTE["espresso"] + (255,))
     draw = ImageDraw.Draw(img)
     cy = FRAME_HEIGHT // 2
-    eyebrow = _load_font(FONT_SERIF_BOLD, 34)
-    _draw_tracked_text(draw, (FRAME_WIDTH // 2, cy - 220),
-                       "THE RIDER'S GANG PRESENTS", eyebrow, GOLD, tracking=7)
+    draw_tracked_fit(draw, (FRAME_WIDTH // 2, cy - 220),
+                     "THE RIDER'S GANG PRESENTS", FONT_SERIF_BOLD, 32, GOLD,
+                     tracking=6)
     draw.line([(FRAME_WIDTH * 0.3, cy - 160), (FRAME_WIDTH * 0.7, cy - 160)],
               fill=GOLD, width=2)
-    title = _load_font(FONT_SERIF_BOLD, 88)
-    _draw_tracked_text(draw, (FRAME_WIDTH // 2, cy - 50), "THE NIGHT THEY",
-                       title, CREAM, tracking=3)
-    _draw_tracked_text(draw, (FRAME_WIDTH // 2, cy + 60), "RACED THE JUKEBOX",
-                       title, CREAM, tracking=3)
-    draw.line([(FRAME_WIDTH * 0.3, cy + 150), (FRAME_WIDTH * 0.7, cy + 150)],
+    draw_tracked_fit(draw, (FRAME_WIDTH // 2, cy - 50), "THE NIGHT THEY",
+                     FONT_SERIF_BOLD, 76, CREAM, tracking=2)
+    draw_tracked_fit(draw, (FRAME_WIDTH // 2, cy + 55), "RACED THE JUKEBOX",
+                     FONT_SERIF_BOLD, 76, CREAM, tracking=2)
+    draw.line([(FRAME_WIDTH * 0.3, cy + 140), (FRAME_WIDTH * 0.7, cy + 140)],
               fill=GOLD, width=2)
-    sub = _load_font(FONT_SERIF_ITALIC, 42)
-    draw.text((FRAME_WIDTH // 2, cy + 220), "A true story from 1950s London",
-              font=sub, fill=CREAM, anchor="mm")
+    draw_plain_fit(draw, (FRAME_WIDTH // 2, cy + 205),
+                   "A true story from 1950s London", FONT_SERIF_ITALIC, 40, CREAM)
     img.convert("RGB").save(path)
 
 
@@ -87,47 +176,89 @@ def build_outro_card(path: str) -> None:
                     PALETTE["espresso"] + (255,))
     draw = ImageDraw.Draw(img)
     cy = FRAME_HEIGHT // 2
-    brand = _load_font(FONT_SERIF_BOLD, 80)
-    _draw_tracked_text(draw, (FRAME_WIDTH // 2, cy - 40), "THE RIDER'S GANG",
-                       brand, CREAM, tracking=8)
+    draw_tracked_fit(draw, (FRAME_WIDTH // 2, cy - 40), "THE RIDER'S GANG",
+                     FONT_SERIF_BOLD, 70, CREAM, tracking=6)
     draw.line([(FRAME_WIDTH * 0.3, cy + 40), (FRAME_WIDTH * 0.7, cy + 40)],
               fill=GOLD, width=3)
-    cta = _load_font(FONT_SERIF_ITALIC, 44)
-    draw.text((FRAME_WIDTH // 2, cy + 110),
-              "The full story — link in bio", font=cta, fill=GOLD, anchor="mm")
+    draw_plain_fit(draw, (FRAME_WIDTH // 2, cy + 110),
+                   "The full story — link in bio", FONT_SERIF_ITALIC, 42, GOLD)
     img.convert("RGB").save(path)
 
 
 def build_scene_overlay(scene: dict, path: str) -> None:
-    """Vignette + gold eyebrow + serif caption for one scene."""
+    """Vignette + gold eyebrow + serif caption; scene 1 adds the sign."""
     ov = Image.new("RGBA", (FRAME_WIDTH, FRAME_HEIGHT), (0, 0, 0, 0))
     ov.alpha_composite(_vignette_layer())
     draw = ImageDraw.Draw(ov)
 
+    if scene["id"] == "01_cafe":
+        draw_neon_sign(ov, (FRAME_WIDTH // 2, 360))
+        draw = ImageDraw.Draw(ov)
+
     # bottom gradient for caption legibility
-    grad_h = 560
+    grad_h = 520
     band = Image.new("L", (1, grad_h), 0)
     for i in range(grad_h):
-        band.putpixel((0, i), int(190 * (i / grad_h) ** 1.5))
+        band.putpixel((0, i), int(185 * (i / grad_h) ** 1.5))
     band = band.resize((FRAME_WIDTH, grad_h))
     gradient = Image.new("RGBA", (FRAME_WIDTH, grad_h), (5, 3, 2, 255))
     gradient.putalpha(band)
     ov.alpha_composite(gradient, (0, FRAME_HEIGHT - grad_h))
 
-    cy = FRAME_HEIGHT - 330
-    eyebrow = _load_font(FONT_SERIF_BOLD, 30)
-    _draw_tracked_text(draw, (FRAME_WIDTH // 2, cy - 80), scene["eyebrow"],
-                       eyebrow, GOLD, tracking=6)
-    cap_font = _load_font(FONT_SERIF_BOLD, 52)
+    cy = FRAME_HEIGHT - 310
+    draw_tracked_fit(draw, (FRAME_WIDTH // 2, cy - 75), scene["eyebrow"],
+                     FONT_SERIF_BOLD, 28, GOLD, tracking=5)
     for i, line in enumerate(scene["caption"].split("\n")):
-        draw.text((FRAME_WIDTH // 2, cy + i * 68), line,
-                  font=cap_font, fill=CREAM, anchor="mm")
+        draw_plain_fit(draw, (FRAME_WIDTH // 2, cy + i * 60), line,
+                       FONT_SERIF_BOLD, 46, CREAM)
 
     _with_shadow(ov).save(path)
 
 
+def build_thumbnail(scene_frame_path: str) -> None:
+    """Designed poster: best scene frame + title + brand, saved as JPG."""
+    base = Image.open(scene_frame_path).convert("RGB")
+    base = base.resize((FRAME_WIDTH, FRAME_HEIGHT), Image.LANCZOS)
+    img = base.convert("RGBA")
+
+    ov = Image.new("RGBA", (FRAME_WIDTH, FRAME_HEIGHT), (0, 0, 0, 0))
+    ov.alpha_composite(_vignette_layer(0.55))
+    draw = ImageDraw.Draw(ov)
+
+    # top and bottom gradients
+    for y0, y1, flip in ((0, 420, True), (FRAME_HEIGHT - 700, FRAME_HEIGHT, False)):
+        h = y1 - y0
+        band = Image.new("L", (1, h), 0)
+        for i in range(h):
+            p = i / h
+            band.putpixel((0, i), int(210 * ((1 - p) if flip else p) ** 1.4))
+        band = band.resize((FRAME_WIDTH, h))
+        g = Image.new("RGBA", (FRAME_WIDTH, h), (5, 3, 2, 255))
+        g.putalpha(band)
+        ov.alpha_composite(g, (0, y0))
+
+    draw_tracked_fit(draw, (FRAME_WIDTH // 2, 170), "THE RIDER'S GANG",
+                     FONT_SERIF_BOLD, 34, GOLD, tracking=7)
+    draw.line([(FRAME_WIDTH * 0.34, 220), (FRAME_WIDTH * 0.66, 220)],
+              fill=GOLD, width=2)
+
+    cy = FRAME_HEIGHT - 430
+    draw_tracked_fit(draw, (FRAME_WIDTH // 2, cy), "THE NIGHT THEY",
+                     FONT_SERIF_BOLD, 82, CREAM, tracking=2)
+    draw_tracked_fit(draw, (FRAME_WIDTH // 2, cy + 105), "RACED THE JUKEBOX",
+                     FONT_SERIF_BOLD, 82, CREAM, tracking=2)
+    draw_plain_fit(draw, (FRAME_WIDTH // 2, cy + 200),
+                   "A true story from 1950s London", FONT_SERIF_ITALIC, 42, GOLD)
+
+    img.alpha_composite(_with_shadow(ov))
+    img.convert("RGB").save(THUMB_PATH, quality=90)
+    print(f"[Thumb] Saved: {THUMB_PATH}")
+
+
+# ── Video segment builders ───────────────────────────────────────────
+
 def preprocess_scene(clip: str, overlay: str, out: str) -> None:
-    """Slow-mo, upscale, sharpen, caption, and fade one scene."""
+    """Slow-mo, upscale, brighten, sharpen, caption, and fade one scene."""
     # 54fps interpolation / 2.25x slowdown lands exactly back on 24fps
     dur = 49 / 24 * SLOW_FACTOR
     subprocess.run([
@@ -136,7 +267,10 @@ def preprocess_scene(clip: str, overlay: str, out: str) -> None:
         "[0:v]minterpolate=fps=54:mi_mode=mci:mc_mode=aobmc:vsbmc=1,"
         "setpts=2.25*PTS,"
         "scale=-2:1920:flags=lanczos,crop=1080:1920,"
-        "unsharp=5:5:0.6:5:5:0.0[v];"
+        "hqdn3d=1.5:1.5:4:4,"
+        "eq=brightness=0.06:contrast=1.10:saturation=1.10,"
+        "cas=0.45,"
+        "unsharp=5:5:0.5:5:5:0.0[v];"
         f"[v][1:v]overlay=0:0,"
         f"fade=t=in:st=0:d={FADE_SEC},fade=t=out:st={dur - FADE_SEC}:d={FADE_SEC}[outv]",
         "-map", "[outv]", "-r", "24",
@@ -145,11 +279,13 @@ def preprocess_scene(clip: str, overlay: str, out: str) -> None:
     ], check=True, capture_output=True)
 
 
-def card_to_video(png: str, seconds: float, out: str) -> None:
+def card_to_video(png: str, seconds: float, out: str, fade_in: bool = True) -> None:
+    fades = f"fade=t=out:st={seconds - FADE_SEC}:d={FADE_SEC}"
+    if fade_in:
+        fades = f"fade=t=in:st=0:d={FADE_SEC}," + fades
     subprocess.run([
         "ffmpeg", "-y", "-loop", "1", "-t", str(seconds), "-i", png,
-        "-vf",
-        f"fade=t=in:st=0:d={FADE_SEC},fade=t=out:st={seconds - FADE_SEC}:d={FADE_SEC}",
+        "-vf", fades,
         "-r", "24", "-c:v", "libx264", "-preset", "fast", "-crf", "16",
         "-pix_fmt", "yuv420p", out,
     ], check=True, capture_output=True)
@@ -168,7 +304,8 @@ def main():
 
     print("[Assemble] Title card...")
     title_mp4 = os.path.join(tmp, "seg_00_title.mp4")
-    card_to_video(title_png, TITLE_SEC, title_mp4)
+    # no fade-in: the film (and its default preview frame) opens visible
+    card_to_video(title_png, TITLE_SEC, title_mp4, fade_in=False)
     segments.append(title_mp4)
 
     for i, scene in enumerate(STORYBOARD, 1):
@@ -189,6 +326,15 @@ def main():
     card_to_video(outro_png, OUTRO_SEC, outro_mp4)
     segments.append(outro_mp4)
 
+    # thumbnail from the race scene (the most dramatic frame)
+    thumb_src = os.path.join(tmp, "thumb_src.png")
+    subprocess.run([
+        "ffmpeg", "-y", "-ss", "1.0",
+        "-i", os.path.join(STORY_DIR, "scene_04_race.mp4"),
+        "-frames:v", "1", thumb_src,
+    ], check=True, capture_output=True)
+    build_thumbnail(thumb_src)
+
     # total duration for the audio bed
     scene_dur = 49 / 24 * SLOW_FACTOR
     total = TITLE_SEC + 6 * scene_dur + OUTRO_SEC
@@ -202,15 +348,27 @@ def main():
             f.write(f"file '{os.path.abspath(s)}'\n")
 
     print("[Assemble] Final concat + audio...")
+    no_thumb = os.path.join(tmp, "final_no_thumb.mp4")
     subprocess.run([
         "ffmpeg", "-y",
         "-f", "concat", "-safe", "0", "-i", concat_list,
         "-i", wav,
         "-map", "0:v", "-map", "1:a",
-        "-c:v", "libx264", "-preset", "medium", "-crf", "21",
+        "-c:v", "libx264", "-preset", "medium", "-crf", "20",
         "-pix_fmt", "yuv420p",
         "-c:a", "aac", "-b:a", "128k",
         "-movflags", "+faststart", "-shortest",
+        no_thumb,
+    ], check=True, capture_output=True)
+
+    # embed the poster as cover art via stream-copy remux
+    print("[Assemble] Embedding thumbnail...")
+    subprocess.run([
+        "ffmpeg", "-y", "-i", no_thumb, "-i", THUMB_PATH,
+        "-map", "0", "-map", "1",
+        "-c", "copy", "-c:v:1", "mjpeg",
+        "-disposition:v:1", "attached_pic",
+        "-movflags", "+faststart",
         OUT_PATH,
     ], check=True, capture_output=True)
 

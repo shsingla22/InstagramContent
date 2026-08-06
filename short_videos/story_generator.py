@@ -24,21 +24,22 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 MODEL_ID = "Lightricks/LTX-Video"
 
-WIDTH = 512
-HEIGHT = 896
+WIDTH = 576
+HEIGHT = 1024          # exact 9:16, higher detail than the 512x896 pass
 NUM_FRAMES = 49
 FPS = 24
 
 STYLE = (
-    "1950s London, night, cinematic 35mm film footage, warm tungsten and neon "
-    "light, deep shadows, shallow depth of field, film grain, smooth camera "
-    "motion, moody atmosphere"
+    "1950s London, evening, cinematic 35mm film footage, warm golden "
+    "streetlight and neon glow, well-lit subjects, sharp focus, highly "
+    "detailed, crisp clear image, smooth camera motion"
 )
 
 NEGATIVE_PROMPT = (
     "worst quality, inconsistent motion, blurry, jittery, distorted, deformed, "
     "watermark, text, logo, cartoon, animation, illustration, low resolution, "
-    "modern cars, daylight"
+    "modern cars, daylight, dark, underexposed, murky, out of focus, "
+    "soft focus, low contrast"
 )
 
 # The storyboard — each scene is one AI generation plus the caption
@@ -46,23 +47,25 @@ NEGATIVE_PROMPT = (
 STORYBOARD = [
     {
         "id": "01_cafe",
-        "seed": 101,
+        "seed": 111,
         "prompt": (
-            "Exterior of a vintage British roadside cafe at night, glowing neon "
-            "sign, a row of classic motorcycles parked out front, riders in "
-            "leather jackets standing by the door, wet asphalt reflecting the "
-            "lights, slow push-in camera move, " + STYLE
+            "Exterior of a brightly lit vintage British roadside cafe in the "
+            "evening, large glowing red neon sign above the entrance, a row "
+            "of classic motorcycles clearly visible parked out front, riders "
+            "in leather jackets by the door, warm light from the windows, "
+            "slow push-in camera move, " + STYLE
         ),
         "caption": "London, 1959.\nThe Ace Cafe never slept.",
         "eyebrow": "A TRUE STORY",
     },
     {
         "id": "02_jukebox",
-        "seed": 202,
+        "seed": 212,
         "prompt": (
-            "Close-up of a vintage 1950s jukebox glowing amber and red, a vinyl "
-            "record spinning, colorful bubbling light tubes, smoky cafe interior "
-            "behind, slow orbiting camera move, " + STYLE
+            "Close-up of a brightly glowing vintage 1950s jukebox, chrome trim "
+            "and colorful light tubes clearly visible, a vinyl record spinning "
+            "on the turntable, warm cafe interior with soft lamplight behind, "
+            "slow orbiting camera move, " + STYLE
         ),
         "caption": "Inside, a rider drops\na coin in the jukebox.",
         "eyebrow": "THE BET",
@@ -82,12 +85,12 @@ STORYBOARD = [
     },
     {
         "id": "04_race",
-        "seed": 404,
+        "seed": 414,
         "prompt": (
-            "A vintage cafe racer motorcycle speeding down a dark empty city "
-            "street at night, rider tucked low over the fuel tank, streetlights "
-            "streaking past with motion blur, tracking shot alongside the "
-            "motorcycle, " + STYLE
+            "A vintage cafe racer motorcycle speeding down a city street lined "
+            "with bright streetlights in the evening, rider in black leather "
+            "tucked low over the chrome fuel tank, motorcycle clearly visible "
+            "and well-lit, tracking shot alongside the motorcycle, " + STYLE
         ),
         "caption": "They called it\n“doing the ton.”",
         "eyebrow": "100 MPH",
@@ -106,11 +109,12 @@ STORYBOARD = [
     },
     {
         "id": "06_return",
-        "seed": 606,
+        "seed": 616,
         "prompt": (
-            "A rider on a vintage motorcycle pulling up outside a neon-lit cafe "
-            "at night and coming to a stop, other riders raising their hands in "
-            "celebration, headlight glowing, triumphant mood, " + STYLE
+            "A rider on a vintage motorcycle pulling up outside a brightly "
+            "neon-lit cafe and coming to a stop, other riders clearly visible "
+            "cheering and raising their hands, faces lit by warm cafe light, "
+            "triumphant mood, " + STYLE
         ),
         "caption": "The ones who made it back\nbecame legends.",
         "eyebrow": "THE TON-UP BOYS",
@@ -191,7 +195,7 @@ def stage2_generate_all(embeds_dir: str, steps: int) -> None:
 
 def main():
     parser = argparse.ArgumentParser(description="Generate story scenes")
-    parser.add_argument("--steps", type=int, default=35)
+    parser.add_argument("--steps", type=int, default=45)
     args = parser.parse_args()
 
     os.makedirs(STORY_DIR, exist_ok=True)
