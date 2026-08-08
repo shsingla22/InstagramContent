@@ -5,3 +5,4 @@ output/short_videos/.photo_cache/
 output/short_videos/.prompt_embeds.pt
 output/short_videos/story/.assembly/
 output/short_videos/story/.embeds/
+output/short_videos/films/*/.assembly/
