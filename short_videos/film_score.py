@@ -164,7 +164,33 @@ def _mood_rockabilly(rng, dur, band_in):
     return audio
 
 
+def _mood_storm(rng, dur, band_in):
+    """Brooding British heritage: low drone, slow heartbeat pulse,
+    dark plucked figures that warm as the story resolves."""
+    audio = np.zeros(int(dur * SR))
+    beat = 60.0 / 70                           # slow, deliberate
+    D, F, A_ = 73.42, 87.31, 110.0             # D minor world
+    # evolving drone: minor early, warms toward the end
+    half = dur * 0.62
+    _add(audio, _pad_chord([D, F, A_], half, 0.05), 0)
+    _add(audio, _pad_chord([D, 92.5, A_, 146.8], dur - half + 1, 0.055), half - 1)
+    t, i = 0.0, 0
+    while t < dur - beat:
+        grown = min(1.0, max(0.3, (t - band_in) / (dur * 0.45)))
+        _add(audio, _kick() * (0.5 if t < band_in else 0.85) * grown, t)
+        if t >= band_in and i % 2 == 1:
+            _add(audio, _kick() * 0.35 * grown, t + beat * 0.18)   # heartbeat double
+        # sparse dark plucks answering the pulse
+        if i % 4 == 2:
+            freq = [D * 2, F * 2, A_ * 2, D * 3][(i // 4) % 4]
+            _add(audio, _pluck(freq, beat * 1.6, 0.25) * 0.4 * grown, t + beat * 0.5)
+        t += beat
+        i += 1
+    return audio
+
+
 MOODS = {
+    "storm_heritage": _mood_storm,
     "western": _mood_western,
     "elegant_waltz": _mood_waltz,
     "epic": _mood_epic,
@@ -255,10 +281,12 @@ def build_film_audio(film: dict, duration: float, title_sec: float,
         audio = np.concatenate([audio, np.zeros(n - len(audio))])
 
     # scene-cued SFX
-    for scene_idx, effect in film.get("sfx", {}).items():
+    for scene_idx, effects in film.get("sfx", {}).items():
+        if isinstance(effects, str):
+            effects = [effects]
         at = title_sec + scene_idx * scene_sec
-        fx = SFX[effect](rng, scene_sec)
-        _add(audio, fx, at)
+        for effect in effects:
+            _add(audio, SFX[effect](rng, scene_sec), at)
 
     # closing chord + master (same finishing chain as the Ace Cafe film)
     ring_at = duration - 5.5

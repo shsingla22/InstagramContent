@@ -31,6 +31,7 @@ from short_videos.film_score import build_film_audio
 from short_videos.film_scripts import FILMS
 
 FILMS_DIR = "output/short_videos/films"
+XFADE_SEC = 0.45
 TITLE_SEC = 2.5
 OUTRO_SEC = 3.0
 CLIP_SEC = 3.5625
@@ -164,6 +165,71 @@ def build_thumbnail(film: dict, still_path: str, out_path: str) -> None:
     img.convert("RGB").save(out_path, quality=90)
 
 
+# ── smooth (crossfade) segment builders ──────────────────────────────
+
+def preprocess_scene_nofade(clip: str, overlay: str, out: str) -> None:
+    """Same enhancement chain as preprocess_scene, but no fades —
+    the crossfade assembly supplies the transitions."""
+    import subprocess as sp
+    # caption fades out before the crossfade zone so overlapping
+    # scene captions never stack up during transitions
+    cap_out = CLIP_SEC - XFADE_SEC - 0.35
+    sp.run([
+        "ffmpeg", "-y", "-i", clip, "-loop", "1", "-t", str(CLIP_SEC),
+        "-i", overlay,
+        "-filter_complex",
+        "[0:v]minterpolate=fps=24:mi_mode=mci:mc_mode=aobmc:vsbmc=1,"
+        "scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos,"
+        "crop=1080:1920,"
+        "hqdn3d=1.5:1.5:4:4,"
+        "eq=gamma=1.03:contrast=1.04:saturation=1.05,"
+        "cas=0.3[v];"
+        f"[1:v]format=rgba,fade=t=in:st=0.15:d=0.35:alpha=1,"
+        f"fade=t=out:st={cap_out}:d=0.35:alpha=1[ov];"
+        "[v][ov]overlay=0:0:shortest=1[outv]",
+        "-map", "[outv]", "-r", "24",
+        "-c:v", "libx264", "-preset", "fast", "-crf", "16",
+        "-pix_fmt", "yuv420p", out,
+    ], check=True, capture_output=True)
+
+
+def card_to_video_nofade(png: str, seconds: float, out: str) -> None:
+    import subprocess as sp
+    sp.run([
+        "ffmpeg", "-y", "-loop", "1", "-t", str(seconds), "-i", png,
+        "-r", "24", "-c:v", "libx264", "-preset", "fast", "-crf", "16",
+        "-pix_fmt", "yuv420p", out,
+    ], check=True, capture_output=True)
+
+
+def crossfade_concat(segments, durations, out_path: str, wav: str) -> float:
+    """Chain all segments with xfade crossfades; returns total duration."""
+    import subprocess as sp
+    inputs = []
+    for s in segments:
+        inputs += ["-i", s]
+    graph = []
+    cum = durations[0]
+    prev = "[0:v]"
+    for k in range(1, len(segments)):
+        offset = cum - XFADE_SEC
+        outlbl = f"[v{k}]" if k < len(segments) - 1 else "[outv]"
+        graph.append(
+            f"{prev}[{k}:v]xfade=transition=fade:duration={XFADE_SEC}:"
+            f"offset={offset:.4f}{outlbl}")
+        prev = outlbl
+        cum = offset + durations[k]
+    sp.run([
+        "ffmpeg", "-y", *inputs, "-i", wav,
+        "-filter_complex", ";".join(graph),
+        "-map", "[outv]", "-map", f"{len(segments)}:a",
+        "-c:v", "libx264", "-preset", "medium", "-crf", "20",
+        "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k",
+        "-movflags", "+faststart", "-shortest", out_path,
+    ], check=True, capture_output=True)
+    return cum
+
+
 # ── assembly ─────────────────────────────────────────────────────────
 
 def assemble(slug: str, film: dict, film_dir: str) -> str:
@@ -177,9 +243,14 @@ def assemble(slug: str, film: dict, film_dir: str) -> str:
     build_title_card(film, title_png)
     build_outro_card(outro_png)
 
+    smooth = film.get("smooth", False)
+    seg_card = card_to_video_nofade if smooth else (
+        lambda png, sec, out: card_to_video(png, sec, out, fade_in=False))
+    seg_scene = preprocess_scene_nofade if smooth else preprocess_scene
+
     segments = []
     title_mp4 = os.path.join(tmp, "seg_00_title.mp4")
-    card_to_video(title_png, TITLE_SEC, title_mp4, fade_in=False)
+    seg_card(title_png, TITLE_SEC, title_mp4)
     segments.append(title_mp4)
 
     for i, scene in enumerate(film["scenes"], 1):
@@ -191,34 +262,49 @@ def assemble(slug: str, film: dict, film_dir: str) -> str:
         overlay = os.path.join(tmp, f"ov_{scene['id']}.png")
         build_scene_overlay(scene, overlay)
         seg = os.path.join(tmp, f"seg_{i:02d}.mp4")
-        preprocess_scene(clip, overlay, seg)
+        seg_scene(clip, overlay, seg)
         segments.append(seg)
 
     outro_mp4 = os.path.join(tmp, "seg_99_outro.mp4")
-    card_to_video(outro_png, OUTRO_SEC, outro_mp4)
+    if smooth:
+        card_to_video_nofade(outro_png, OUTRO_SEC, outro_mp4)
+    else:
+        card_to_video(outro_png, OUTRO_SEC, outro_mp4)
     segments.append(outro_mp4)
 
     build_thumbnail(film, os.path.join(film_dir, "stills",
                                        f"{film['thumb_scene']}.png"), thumb_path)
 
-    total = TITLE_SEC + len(film["scenes"]) * CLIP_SEC + OUTRO_SEC
+    if smooth:
+        # crossfades shorten the timeline; score matches the merged length
+        n_x = len(segments) - 1
+        total = (TITLE_SEC + len(film["scenes"]) * CLIP_SEC + OUTRO_SEC
+                 - n_x * XFADE_SEC)
+        eff_title = TITLE_SEC - XFADE_SEC
+        eff_scene = CLIP_SEC - XFADE_SEC
+    else:
+        total = TITLE_SEC + len(film["scenes"]) * CLIP_SEC + OUTRO_SEC
+        eff_title, eff_scene = TITLE_SEC, CLIP_SEC
     wav = os.path.join(tmp, "score.wav")
-    build_film_audio(film, total, TITLE_SEC, CLIP_SEC, wav)
+    build_film_audio(film, total, eff_title, eff_scene, wav)
 
-    concat_list = os.path.join(tmp, "concat.txt")
-    with open(concat_list, "w") as f:
-        for s in segments:
-            f.write(f"file '{os.path.abspath(s)}'\n")
-
-    print("[Assemble] Final concat + audio + thumbnail...")
+    print("[Assemble] Final assembly + audio + thumbnail...")
     no_thumb = os.path.join(tmp, "final_no_thumb.mp4")
-    subprocess.run([
-        "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat_list,
-        "-i", wav, "-map", "0:v", "-map", "1:a",
-        "-c:v", "libx264", "-preset", "medium", "-crf", "20",
-        "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k",
-        "-movflags", "+faststart", "-shortest", no_thumb,
-    ], check=True, capture_output=True)
+    if smooth:
+        durations = [TITLE_SEC] + [CLIP_SEC] * len(film["scenes"]) + [OUTRO_SEC]
+        crossfade_concat(segments, durations, no_thumb, wav)
+    else:
+        concat_list = os.path.join(tmp, "concat.txt")
+        with open(concat_list, "w") as f:
+            for s in segments:
+                f.write(f"file '{os.path.abspath(s)}'\n")
+        subprocess.run([
+            "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat_list,
+            "-i", wav, "-map", "0:v", "-map", "1:a",
+            "-c:v", "libx264", "-preset", "medium", "-crf", "20",
+            "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k",
+            "-movflags", "+faststart", "-shortest", no_thumb,
+        ], check=True, capture_output=True)
     subprocess.run([
         "ffmpeg", "-y", "-i", no_thumb, "-i", thumb_path,
         "-map", "0", "-map", "1", "-c", "copy", "-c:v:1", "mjpeg",
