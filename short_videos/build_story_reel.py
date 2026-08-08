@@ -30,18 +30,18 @@ from short_videos import (
     FRAME_WIDTH,
     PALETTE,
 )
-from short_videos.audio_bed import build_audio_bed
+from short_videos.cinematic_generator import STORY_DIR, STORYBOARD
 from short_videos.generator import _load_font
 from short_videos.retro_look import make_vignette
-from short_videos.story_generator import STORY_DIR, STORYBOARD
+from short_videos.rockabilly_score import build_score
 
 OUT_PATH = "output/short_videos/reel_ai_story_cafe_racer.mp4"
 THUMB_PATH = "output/short_videos/reel_ai_story_thumbnail.jpg"
 
 TITLE_SEC = 2.5
 OUTRO_SEC = 3.0
-CLIP_SEC = 2.9667           # GPU scene clips are ~3s
-SLOW_FACTOR = 1.5           # 3s clips → ~4.45s per scene
+CLIP_SEC = 3.5625           # Wan clips are ~3.56s at 16fps
+SLOW_FACTOR = 1.0           # native speed — racing must feel fast
 FADE_SEC = 0.3
 MAX_TEXT_WIDTH = int(FRAME_WIDTH * 0.88)   # text must stay inside this
 
@@ -192,7 +192,7 @@ def build_scene_overlay(scene: dict, path: str) -> None:
     ov.alpha_composite(_vignette_layer())
     draw = ImageDraw.Draw(ov)
 
-    if scene["id"] == "01_cafe":
+    if scene.get("neon_sign"):
         draw_neon_sign(ov, (FRAME_WIDTH // 2, 360))
         draw = ImageDraw.Draw(ov)
 
@@ -265,8 +265,7 @@ def preprocess_scene(clip: str, overlay: str, out: str) -> None:
     subprocess.run([
         "ffmpeg", "-y", "-i", clip, "-i", overlay,
         "-filter_complex",
-        "[0:v]minterpolate=fps=36:mi_mode=mci:mc_mode=aobmc:vsbmc=1,"
-        "setpts=1.5*PTS,"
+        "[0:v]minterpolate=fps=24:mi_mode=mci:mc_mode=aobmc:vsbmc=1,"
         "scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos,"
         "crop=1080:1920,"
         "eq=gamma=1.03:contrast=1.04:saturation=1.05,"
@@ -313,7 +312,7 @@ def main():
         if not os.path.exists(clip):
             print(f"ERROR: missing scene clip {clip}")
             sys.exit(1)
-        print(f"[Assemble] Scene {i}/6: {scene['id']} "
+        print(f"[Assemble] Scene {i}/{len(STORYBOARD)}: {scene['id']} "
               "(interpolate + upscale + caption)...")
         overlay = os.path.join(tmp, f"ov_{scene['id']}.png")
         build_scene_overlay(scene, overlay)
@@ -327,19 +326,17 @@ def main():
     segments.append(outro_mp4)
 
     # thumbnail from the race scene (the most dramatic frame)
-    thumb_src = os.path.join(tmp, "thumb_src.png")
-    subprocess.run([
-        "ffmpeg", "-y", "-ss", "1.0",
-        "-i", os.path.join(STORY_DIR, "scene_04_race.mp4"),
-        "-frames:v", "1", thumb_src,
-    ], check=True, capture_output=True)
-    build_thumbnail(thumb_src)
+    build_thumbnail(os.path.join(STORY_DIR, "stills", "04_race.png"))
 
-    # total duration for the audio bed
+    # story-synced score: band kicks in at the jukebox scene,
+    # engine rumble under launch through the final straight
     scene_dur = CLIP_SEC * SLOW_FACTOR
-    total = TITLE_SEC + 6 * scene_dur + OUTRO_SEC
+    total = TITLE_SEC + len(STORYBOARD) * scene_dur + OUTRO_SEC
+    band_in = TITLE_SEC + 1 * scene_dur          # scene 2: the coin drop
+    race_span = (TITLE_SEC + 2 * scene_dur,      # scenes 3-6: the race
+                 TITLE_SEC + 6 * scene_dur)
     wav = os.path.join(tmp, "bed.wav")
-    build_audio_bed(total, "midnight", wav, seed=1959)
+    build_score(total, wav, band_in_sec=band_in, race_span=race_span)
 
     # concat everything + mux audio
     concat_list = os.path.join(tmp, "concat.txt")
