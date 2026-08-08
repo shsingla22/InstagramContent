@@ -1,0 +1,8 @@
+file '/home/user/InstagramContent/output/short_videos/films/denim-and-the-rider-how-jeans-were-born-in-the-saddle/.assembly/seg_00_title.mp4'
+file '/home/user/InstagramContent/output/short_videos/films/denim-and-the-rider-how-jeans-were-born-in-the-saddle/.assembly/seg_01.mp4'
+file '/home/user/InstagramContent/output/short_videos/films/denim-and-the-rider-how-jeans-were-born-in-the-saddle/.assembly/seg_02.mp4'
+file '/home/user/InstagramContent/output/short_videos/films/denim-and-the-rider-how-jeans-were-born-in-the-saddle/.assembly/seg_03.mp4'
+file '/home/user/InstagramContent/output/short_videos/films/denim-and-the-rider-how-jeans-were-born-in-the-saddle/.assembly/seg_04.mp4'
+file '/home/user/InstagramContent/output/short_videos/films/denim-and-the-rider-how-jeans-were-born-in-the-saddle/.assembly/seg_05.mp4'
+file '/home/user/InstagramContent/output/short_videos/films/denim-and-the-rider-how-jeans-were-born-in-the-saddle/.assembly/seg_06.mp4'
+file '/home/user/InstagramContent/output/short_videos/films/denim-and-the-rider-how-jeans-were-born-in-the-saddle/.assembly/seg_99_outro.mp4'
