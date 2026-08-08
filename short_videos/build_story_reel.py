@@ -40,7 +40,8 @@ THUMB_PATH = "output/short_videos/reel_ai_story_thumbnail.jpg"
 
 TITLE_SEC = 2.5
 OUTRO_SEC = 3.0
-SLOW_FACTOR = 2.25          # 49 frames @24fps → ~4.6s per scene
+CLIP_SEC = 2.9667           # GPU scene clips are ~3s
+SLOW_FACTOR = 1.5           # 3s clips → ~4.45s per scene
 FADE_SEC = 0.3
 MAX_TEXT_WIDTH = int(FRAME_WIDTH * 0.88)   # text must stay inside this
 
@@ -260,18 +261,16 @@ def build_thumbnail(scene_frame_path: str) -> None:
 def preprocess_scene(clip: str, overlay: str, out: str) -> None:
     """Slow-mo, upscale, brighten, sharpen, caption, and fade one scene."""
     # 54fps interpolation / 2.25x slowdown lands exactly back on 24fps
-    dur = 49 / 24 * SLOW_FACTOR
+    dur = CLIP_SEC * SLOW_FACTOR
     subprocess.run([
         "ffmpeg", "-y", "-i", clip, "-i", overlay,
         "-filter_complex",
-        "[0:v]minterpolate=fps=54:mi_mode=mci:mc_mode=aobmc:vsbmc=1,"
-        "setpts=2.25*PTS,"
+        "[0:v]minterpolate=fps=36:mi_mode=mci:mc_mode=aobmc:vsbmc=1,"
+        "setpts=1.5*PTS,"
         "scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos,"
         "crop=1080:1920,"
-        "hqdn3d=1.5:1.5:4:4,"
-        "eq=gamma=1.15:brightness=0.04:contrast=1.08:saturation=1.08,"
-        "cas=0.45,"
-        "unsharp=5:5:0.5:5:5:0.0[v];"
+        "eq=gamma=1.03:contrast=1.04:saturation=1.05,"
+        "cas=0.3[v];"
         f"[v][1:v]overlay=0:0,"
         f"fade=t=in:st=0:d={FADE_SEC},fade=t=out:st={dur - FADE_SEC}:d={FADE_SEC}[outv]",
         "-map", "[outv]", "-r", "24",
@@ -337,7 +336,7 @@ def main():
     build_thumbnail(thumb_src)
 
     # total duration for the audio bed
-    scene_dur = 49 / 24 * SLOW_FACTOR
+    scene_dur = CLIP_SEC * SLOW_FACTOR
     total = TITLE_SEC + 6 * scene_dur + OUTRO_SEC
     wav = os.path.join(tmp, "bed.wav")
     build_audio_bed(total, "midnight", wav, seed=1959)
