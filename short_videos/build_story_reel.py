@@ -327,7 +327,7 @@ def main():
     segments.append(outro_mp4)
 
     # thumbnail from the race scene (the most dramatic frame)
-    build_thumbnail(os.path.join(STORY_DIR, "stills", "04_race.png"))
+    build_thumbnail(os.path.join(STORY_DIR, "stills", "01_cafe.png"))
 
     # story-synced score: band kicks in at the jukebox scene,
     # engine rumble under launch through the final straight
