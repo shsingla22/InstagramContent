@@ -34,6 +34,7 @@ from short_videos.cinematic_generator import STORY_DIR, STORYBOARD
 from short_videos.generator import _load_font
 from short_videos.retro_look import make_vignette
 from short_videos.rockabilly_score import build_score
+from short_videos.sfx_engine import build_engine_track, load_engine_track
 
 OUT_PATH = "output/short_videos/reel_ai_story_cafe_racer.mp4"
 THUMB_PATH = "output/short_videos/reel_ai_story_thumbnail.jpg"
@@ -336,7 +337,11 @@ def main():
     race_span = (TITLE_SEC + 2 * scene_dur,      # scenes 3-6: the race
                  TITLE_SEC + 6 * scene_dur)
     wav = os.path.join(tmp, "bed.wav")
-    build_score(total, wav, band_in_sec=band_in, race_span=race_span)
+    engine_raw = os.path.join(tmp, "engines.f32")
+    build_engine_track(total, race_span, engine_raw)
+    engines = load_engine_track(engine_raw, int(total * 44100))
+    build_score(total, wav, band_in_sec=band_in, race_span=race_span,
+                engine_track=engines)
 
     # concat everything + mux audio
     concat_list = os.path.join(tmp, "concat.txt")
