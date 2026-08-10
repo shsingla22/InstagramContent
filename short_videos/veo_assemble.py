@@ -1,14 +1,15 @@
 """
-Veo Assembly — stitches Veo scenes (which carry their own native
-audio) into the finished Instagram reel.
+Film Assembly — stitches the AI-generated scenes (Wan 2.2 A14B,
+video-only) into the finished Instagram reel.
 
 Timeline:  scene1(hook) → BELSTAFF card → scene2 → scene3 → scene4
            → outro card
 
 Video: crossfades between all segments; captions fade out before
-each transition. Audio: the scenes' native audio is placed on the
-same timeline with matching crossfades, and the storm-heritage
-music bed sits quietly underneath. Poster thumbnail embedded.
+each transition. Audio: fully synthesized — the storm-heritage
+score carries the film, with per-scene SFX (rain, wind, the real
+engine recording) cued at each scene's actual start time; the score
+warms as the heirloom scene begins. Poster thumbnail embedded.
 """
 
 import os
@@ -27,7 +28,7 @@ from short_videos.build_story_reel import (
     CREAM, GOLD, _vignette_layer, _with_shadow, draw_plain_fit,
     draw_tracked_fit,
 )
-from short_videos.film_score import MOODS
+from short_videos.film_score import MOODS, SFX
 from short_videos.real_belstaff import card_brand, card_outro, hook_overlay
 from short_videos.rockabilly_score import SR, _add, _env
 
@@ -43,14 +44,6 @@ def _clip_duration(path):
     return float(out.stdout.strip())
 
 
-def _load_audio(path, dur):
-    out = subprocess.run(
-        ["ffmpeg", "-v", "error", "-i", path, "-t", str(dur),
-         "-f", "f32le", "-ac", "1", "-ar", str(SR), "-"],
-        capture_output=True, check=True)
-    return np.frombuffer(out.stdout, dtype=np.float32).astype(np.float64)
-
-
 def _render_video_segment(src, dur, overlay_png, out, is_card=False):
     if is_card:
         subprocess.run([
@@ -59,7 +52,7 @@ def _render_video_segment(src, dur, overlay_png, out, is_card=False):
             "-c:v", "libx264", "-preset", "fast", "-crf", "16",
             "-pix_fmt", "yuv420p", out], check=True, capture_output=True)
         return
-    cap_out = dur - XF - 0.3
+    cap_out = dur - XF - 0.5   # caption fully out before the crossfade
     subprocess.run([
         "ffmpeg", "-y", "-i", src, "-loop", "1", "-t", str(dur),
         "-i", overlay_png,
@@ -115,18 +108,19 @@ def assemble(scenes, ai_dir, out_path, thumb_path):
     card_brand(brand_png)
     card_outro(outro_png)
 
-    entries = []           # (video_path_for_segment, dur, audio_src or None)
+    entries = []       # (src, dur, sfx list or None, meta)
     s1 = os.path.join(ai_dir, f"scene_{scenes[0]['id']}.mp4")
-    entries.append((s1, min(8.0, _clip_duration(s1)), s1, "hook"))
+    entries.append((s1, min(8.0, _clip_duration(s1)),
+                    scenes[0].get("sfx"), "hook"))
     entries.append((brand_png, BRAND_SEC, None, "card"))
     for sc in scenes[1:]:
         p = os.path.join(ai_dir, f"scene_{sc['id']}.mp4")
-        entries.append((p, min(8.0, _clip_duration(p)), p, sc))
+        entries.append((p, min(8.0, _clip_duration(p)), sc.get("sfx"), sc))
     entries.append((outro_png, OUTRO_SEC, None, "card"))
 
     # render video segments
     segments, durations, metas = [], [], []
-    for i, (src, dur, asrc, meta) in enumerate(entries):
+    for i, (src, dur, sfx, meta) in enumerate(entries):
         out = os.path.join(tmp, f"seg_{i:02d}.mp4")
         print(f"[Assemble] segment {i + 1}/{len(entries)}")
         if meta == "card":
@@ -141,35 +135,43 @@ def assemble(scenes, ai_dir, out_path, thumb_path):
             _render_video_segment(src, dur, ov, out)
         segments.append(out)
         durations.append(dur)
-        metas.append((asrc, dur))
+        metas.append((sfx, dur))
 
-    # audio timeline: native scene audio with crossfades + music bed
+    # audio timeline: storm-heritage score + SFX cued per scene
     starts = [0.0]
     for k in range(1, len(durations)):
         starts.append(starts[-1] + durations[k - 1] - XF)
     total = starts[-1] + durations[-1]
 
     n = int(total * SR)
-    audio = np.zeros(n)
-    for (asrc, dur), at in zip(metas, starts):
-        if asrc is None:
-            continue
-        seg = _load_audio(asrc, dur)
-        f = int(XF * SR)
-        if len(seg) > 2 * f:
-            seg[:f] *= np.linspace(0, 1, f)
-            seg[-f:] *= np.linspace(1, 0, f)
-        _add(audio, seg, at)
-
     rng = np.random.default_rng(1924)
-    bed = MOODS["storm_heritage"](rng, total, starts[2])[:n]
-    if len(bed) < n:
-        bed = np.concatenate([bed, np.zeros(n - len(bed))])
-    audio += bed * 0.4                        # music sits under the scenes
+    audio = MOODS["storm_heritage"](rng, total, starts[-2])[:n]
+    if len(audio) < n:
+        audio = np.concatenate([audio, np.zeros(n - len(audio))])
 
+    for (sfx, dur), at in zip(metas, starts):
+        for effect in sfx or []:
+            seg = SFX[effect](rng, dur)
+            f = int(XF * SR)
+            if len(seg) > 2 * f:
+                seg[:f] *= np.linspace(0, 1, f)
+                seg[-f:] *= np.linspace(1, 0, f)
+            _add(audio, seg, at)
+
+    # closing chord under the outro card
+    ring_at = max(0.0, total - OUTRO_SEC - 1.2)
+    nring = int(3.0 * SR)
+    t = np.arange(nring) / SR
+    chord = sum(np.sin(2 * np.pi * f * t)
+                for f in (73.42, 92.5, 110.0, 146.8))
+    _add(audio, chord * _env(nring, int(0.02 * SR), int(2.4 * SR)) * 0.10,
+         ring_at)
+
+    fade_in = int(0.5 * SR)
+    audio[:fade_in] *= 0.5 - 0.5 * np.cos(np.linspace(0, np.pi, fade_in))
     fade_out = int(1.8 * SR)
     audio[-fade_out:] *= 0.5 + 0.5 * np.cos(np.linspace(0, np.pi, fade_out))
-    audio = np.tanh(audio * 1.5) / np.tanh(1.5)
+    audio = np.tanh(audio * 1.6) / np.tanh(1.6)
     peak = np.abs(audio).max()
     if peak > 0:
         audio = audio / peak * 0.6

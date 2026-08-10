@@ -62,6 +62,7 @@ SCENES = [
         ),
         "caption": "England, 1924.\nThe storm came for him.",
         "eyebrow": "BELSTAFF • A TRUE STORY",
+        "sfx": ["wind", "rain", "engine"],
     },
     {
         "id": "02_wax",
@@ -76,6 +77,7 @@ SCENES = [
         ),
         "caption": "Belstaff taught cotton\nto drink wax.",
         "eyebrow": "STOKE-ON-TRENT",
+        "sfx": ["rain"],
     },
     {
         "id": "03_test",
@@ -91,6 +93,7 @@ SCENES = [
         ),
         "caption": "The rain rolled off.\nThe rider rode on.",
         "eyebrow": "THE PROOF",
+        "sfx": ["rain", "engine", "wind"],
     },
     {
         "id": "04_gift",
@@ -106,6 +109,7 @@ SCENES = [
         ),
         "caption": "Forty years on: handed down\nlike land.",
         "eyebrow": "THE HEIRLOOM",
+        "sfx": ["rain"],
     },
 ]
 
