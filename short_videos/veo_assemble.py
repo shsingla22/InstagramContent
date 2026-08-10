@@ -7,10 +7,11 @@ Timeline:  scene1(hook) → BELSTAFF card → scene2 → scene3 → scene4
 
 Video: crossfades between all segments; captions fade out before
 each transition. Audio: fully synthesized — a classic-rock riding
-score carries the film (palm-muted chug under the hook, full band
-dropping right on the BELSTAFF card, pentatonic lead after), with
-per-scene SFX (rain, wind, the real engine recording) cued at each
-scene's actual start time. Poster thumbnail embedded.
+score carries the film with the full band playing from the very
+first frame (crash on the downbeat, E–D–A power chords, driving
+backbeat, anthemic lead melody), with per-scene SFX (rain, wind,
+the real engine recording) cued at each scene's actual start time.
+Poster thumbnail embedded.
 """
 
 import os
@@ -146,13 +147,14 @@ def assemble(scenes, ai_dir, out_path, thumb_path):
 
     n = int(total * SR)
     rng = np.random.default_rng(1924)
-    audio = MOODS["classic_rock"](rng, total, starts[1])[:n]
+    audio = MOODS["classic_rock"](rng, total, 0.0)[:n]
     if len(audio) < n:
         audio = np.concatenate([audio, np.zeros(n - len(audio))])
 
+    SFX_GAIN = {"engine": 0.4}     # keep the bike well under the music
     for (sfx, dur), at in zip(metas, starts):
         for effect in sfx or []:
-            seg = SFX[effect](rng, dur)
+            seg = SFX[effect](rng, dur) * SFX_GAIN.get(effect, 1.0)
             f = int(XF * SR)
             if len(seg) > 2 * f:
                 seg[:f] *= np.linspace(0, 1, f)
@@ -168,14 +170,15 @@ def assemble(scenes, ai_dir, out_path, thumb_path):
     _add(audio, chord * _env(nring, int(0.02 * SR), int(2.4 * SR)) * 0.10,
          ring_at)
 
-    fade_in = int(0.5 * SR)
+    fade_in = int(0.12 * SR)   # just enough to avoid a click — the
+                               # band hits from the very first frame
     audio[:fade_in] *= 0.5 - 0.5 * np.cos(np.linspace(0, np.pi, fade_in))
     fade_out = int(1.8 * SR)
     audio[-fade_out:] *= 0.5 + 0.5 * np.cos(np.linspace(0, np.pi, fade_out))
     audio = np.tanh(audio * 1.6) / np.tanh(1.6)
     peak = np.abs(audio).max()
     if peak > 0:
-        audio = audio / peak * 0.6
+        audio = audio / peak * 0.5     # headroom for AAC encoder overshoot
     delay = int(0.012 * SR)
     right = np.concatenate([np.zeros(delay), audio[:-delay]])
     stereo = np.stack([audio, right], axis=1)

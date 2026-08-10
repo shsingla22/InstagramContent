@@ -245,85 +245,76 @@ def _mood_storm(rng, dur, band_in):
 
 
 def _mood_classic_rock(rng, dur, band_in):
-    """Open-road classic rock in E: palm-muted chug under the intro,
-    then a crash at band_in and the full band — driving kick/snare,
-    open power chords (E–G–A), locked eighth-note bass, and a sparse
-    E-minor-pentatonic lead answering from the second bar on."""
+    """Open-road classic rock in E, full band from the very first
+    beat: crash on the downbeat, driving kick/snare, warm E–D–A
+    power chords with light chug fills, locked eighth-note bass,
+    and an anthemic E-major-pentatonic lead melody that carries
+    the whole piece.  (band_in is unused — the band never waits.)"""
     audio = np.zeros(int(dur * SR))
-    beat = 60.0 / 116                            # driving, not frantic
+    beat = 60.0 / 112                            # confident highway tempo
     bar = 4 * beat
-    E, G, A_ = 82.41, 98.0, 110.0
-    PROG = [E, E, G, A_]
+    E, D, A_ = 82.41, 73.42, 110.0
+    PROG = [E, D, A_, E]
     groove_end = dur - 1.5
 
     # rhythm guitar + bass
     t, bar_i = 0.0, 0
     while t < groove_end:
         root = PROG[bar_i % len(PROG)]
-        if t < band_in:                          # tense intro chug on E
-            for e8 in range(8):
-                at = t + e8 * beat / 2
-                if at >= min(band_in, groove_end):
-                    break
-                acc = 1.0 if e8 % 4 == 0 else (0.55 if e8 % 2 else 0.75)
-                _add(audio, _power_chord(E, beat * 0.5, mute=True) * 0.5 * acc, at)
-                _add(audio, _bass_note(E / 2, beat * 0.45) * 0.5, at)
-        else:                                    # full band
-            _add(audio, _power_chord(root, beat * 2.2) * 0.62, t)
-            for e8 in (4, 5, 6, 7):              # boom … chug-chug-chug-chug
-                at = t + e8 * beat / 2
-                if at >= groove_end:
-                    break
-                _add(audio, _power_chord(root, beat * 0.5, mute=True) * 0.42, at)
-            for e8 in range(8):
-                at = t + e8 * beat / 2
-                if at >= groove_end:
-                    break
-                _add(audio, _bass_note(root / 2, beat * 0.45) * 0.8, at)
+        _add(audio, _power_chord(root, beat * 2.2, drive=3.6) * 0.5, t)
+        _add(audio, _pluck(root * 4, beat * 2.0, bright=0.35) * 0.22, t)
+        for e8 in (5, 6, 7):                     # light chug into the next bar
+            at = t + e8 * beat / 2
+            if at >= groove_end:
+                break
+            _add(audio, _power_chord(root, beat * 0.5, mute=True,
+                                     drive=3.6) * 0.34, at)
+        for e8 in range(8):
+            at = t + e8 * beat / 2
+            if at >= groove_end:
+                break
+            _add(audio, _bass_note(root / 2, beat * 0.45) * 0.8, at)
         t += bar
         bar_i += 1
 
-    # drums
+    # drums: full groove from the downbeat
     t, beat_i = 0.0, 0
     while t < groove_end:
-        in_band = t >= band_in
-        _add(audio, _hat(rng) * (0.9 if in_band else 0.45), t)
-        _add(audio, _hat(rng) * (0.6 if in_band else 0.3), t + beat / 2)
-        if in_band:
-            if beat_i % 2 == 0:
-                _add(audio, _kick() * 1.1, t)
-                if beat_i % 4 == 2:              # push into the backbeat
-                    _add(audio, _kick() * 0.7, t + beat / 2)
-            else:
-                _add(audio, _snare(rng) * 1.15, t)
+        _add(audio, _hat(rng) * 0.85, t)
+        _add(audio, _hat(rng) * 0.55, t + beat / 2)
+        if beat_i % 2 == 0:
+            _add(audio, _kick() * 1.1, t)
+            if beat_i % 4 == 2:                  # push into the backbeat
+                _add(audio, _kick() * 0.7, t + beat / 2)
         else:
-            if beat_i % 2 == 0:
-                _add(audio, _kick() * 0.6, t)
+            _add(audio, _snare(rng) * 1.1, t)
         t += beat
         beat_i += 1
 
-    # crash right on the band drop, and at the top of every 4th bar after
-    _add(audio, _crash(rng), band_in)
-    t = band_in + 4 * bar
+    # crashes: on the very first beat, then the top of every 4 bars
+    t = 0.0
     while t < groove_end:
-        _add(audio, _crash(rng) * 0.6, t)
+        _add(audio, _crash(rng) * (1.0 if t == 0.0 else 0.55), t)
         t += 4 * bar
 
-    # lead guitar: two alternating pentatonic phrases, entering bar 2
-    E4, G4, A4, B4, D5, E5 = 329.63, 392.0, 440.0, 493.88, 587.33, 659.26
-    LICKS = [
-        [(0.0, B4, 0.75, None), (1.0, A4, 0.5, None),
-         (1.5, G4, 0.5, None), (2.0, A4, 1.5, B4)],      # bend up to B
-        [(0.0, E5, 0.75, None), (1.0, D5, 0.5, None),
-         (1.5, B4, 0.5, None), (2.0, G4, 1.75, A4)],
+    # lead melody: 4-bar anthemic hook (E major pentatonic), repeating
+    E4, Fs4, Gs4, A4, B4, Cs5, E5 = (329.63, 369.99, 415.30, 440.0,
+                                     493.88, 554.37, 659.26)
+    HOOK = [
+        (0.0, E4, 0.75, None), (0.75, Gs4, 0.75, None), (1.5, B4, 2.3, None),
+        (4.0, A4, 0.75, None), (4.75, B4, 0.75, None),
+        (5.5, A4, 0.75, None), (6.25, Fs4, 1.6, None),
+        (8.0, Cs5, 1.5, None), (9.5, B4, 0.75, None), (10.25, A4, 1.6, None),
+        (12.0, B4, 1.0, None), (13.0, B4, 2.8, E5),    # long bend up to E
     ]
-    t, phrase_i = band_in + 2 * bar, 0
-    while t + 2 * bar <= groove_end + 0.5:
-        for off, f0, ndur, f1 in LICKS[phrase_i % 2]:
-            _add(audio, _lead_note(f0, ndur * beat, f1, 0.34), t + off * beat)
-        t += 2 * bar
-        phrase_i += 1
-
+    t = 0.0
+    while t < groove_end - bar:
+        for off, f0, ndur, f1 in HOOK:
+            at = t + off * beat
+            if at >= groove_end:
+                break
+            _add(audio, _lead_note(f0, ndur * beat, f1, 0.42), at)
+        t += 4 * bar
     return audio
 
 
