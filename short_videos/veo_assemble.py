@@ -6,10 +6,11 @@ Timeline:  scene1(hook) → BELSTAFF card → scene2 → scene3 → scene4
            → outro card
 
 Video: crossfades between all segments; captions fade out before
-each transition. Audio: fully synthesized — the storm-heritage
-score carries the film, with per-scene SFX (rain, wind, the real
-engine recording) cued at each scene's actual start time; the score
-warms as the heirloom scene begins. Poster thumbnail embedded.
+each transition. Audio: fully synthesized — a classic-rock riding
+score carries the film (palm-muted chug under the hook, full band
+dropping right on the BELSTAFF card, pentatonic lead after), with
+per-scene SFX (rain, wind, the real engine recording) cued at each
+scene's actual start time. Poster thumbnail embedded.
 """
 
 import os
@@ -145,7 +146,7 @@ def assemble(scenes, ai_dir, out_path, thumb_path):
 
     n = int(total * SR)
     rng = np.random.default_rng(1924)
-    audio = MOODS["storm_heritage"](rng, total, starts[-2])[:n]
+    audio = MOODS["classic_rock"](rng, total, starts[1])[:n]
     if len(audio) < n:
         audio = np.concatenate([audio, np.zeros(n - len(audio))])
 
@@ -163,7 +164,7 @@ def assemble(scenes, ai_dir, out_path, thumb_path):
     nring = int(3.0 * SR)
     t = np.arange(nring) / SR
     chord = sum(np.sin(2 * np.pi * f * t)
-                for f in (73.42, 92.5, 110.0, 146.8))
+                for f in (82.41, 123.47, 164.81, 207.65))
     _add(audio, chord * _env(nring, int(0.02 * SR), int(2.4 * SR)) * 0.10,
          ring_at)
 
