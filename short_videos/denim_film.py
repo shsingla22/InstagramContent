@@ -89,14 +89,16 @@ SCENES = [
     {
         "id": "03_drive",
         "prompt": (
-            "A cowboy wearing riveted denim jeans rides his horse at a "
-            "steady trot beside a cattle herd across a dusty golden "
-            "plain at sunrise. He sits astride the saddle facing "
-            "forward over the horse's neck, boots in the stirrups, "
-            "reins in his left hand, copper rivets glinting on his "
-            "jeans pockets. Camera: wide tracking shot moving with the "
-            "rider through the golden dust, drifting closer to the "
-            "denim and rivets. " + WEST
+            "A cowboy wearing a faded tan cotton work shirt with rolled "
+            "sleeves and plain sturdy indigo denim work trousers with "
+            "plain undecorated pockets rides his horse at a steady trot "
+            "beside a cattle herd across a dusty golden plain at "
+            "sunrise. He "
+            "sits astride the saddle facing forward over the horse's "
+            "neck, boots in the stirrups, reins in his left hand. "
+            "Camera: a medium-wide tracking shot that stays level with "
+            "the rider, moving with him through the golden dust as the "
+            "herd streams past behind. " + WEST
         ),
         "caption": "14-hour days in the saddle.\nThe rivets held.",
         "eyebrow": "THE TEST",
