@@ -75,11 +75,13 @@ SCENES = [
         "prompt": (
             "In a 1950s Italian shoemaker's atelier, a close-up of a "
             "craftsman's hands holding an elegant black calfskin "
-            "leather loafer with a small gold horsebit ornament on its "
-            "vamp. He polishes the leather with a soft cloth and turns "
-            "the shoe slowly so the gold horsebit catches the light of "
-            "the warm work lamp, leather tools and polish tins on the "
-            "scarred wooden workbench around him. Camera: slow close "
+            "leather loafer decorated with simple geometric gold "
+            "hardware across the vamp: two small round gold rings "
+            "joined by a straight gold bar, like a miniature horse "
+            "snaffle bit. He polishes the leather with a soft cloth "
+            "and turns the shoe slowly so the gold rings catch the "
+            "light of the warm work lamp, leather tools and polish "
+            "tins on the scarred wooden workbench. Camera: slow close "
             "orbit over the hands and the shoe. " + LUX
         ),
         "caption": "1953. Aldo Gucci shrank\na horse's bit into gold.",
