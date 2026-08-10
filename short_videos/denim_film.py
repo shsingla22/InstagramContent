@@ -210,18 +210,28 @@ def thumbnail(scene_clip, thumb_path):
 
 # ── generation + assembly ────────────────────────────────────────────
 
-def generate_scene(client, scene, out_path):
-    print(f"  [Wan] generating {scene['id']}...", flush=True)
-    t0 = time.time()
-    video = client.text_to_video(
-        scene["prompt"],
-        model="Wan-AI/Wan2.2-T2V-A14B",
-        extra_body={"aspect_ratio": "9:16", "resolution": "720p"},
-    )
-    with open(out_path, "wb") as f:
-        f.write(video)
-    print(f"    done in {time.time() - t0:.0f}s "
-          f"({len(video) / 1e6:.1f} MB)", flush=True)
+def generate_scene(client, scene, out_path, attempts=3):
+    for attempt in range(1, attempts + 1):
+        print(f"  [Wan] generating {scene['id']} "
+              f"(attempt {attempt})...", flush=True)
+        t0 = time.time()
+        try:
+            video = client.text_to_video(
+                scene["prompt"],
+                model="Wan-AI/Wan2.2-T2V-A14B",
+                extra_body={"aspect_ratio": "9:16", "resolution": "720p"},
+            )
+        except Exception as e:                    # transient network drops
+            print(f"    failed: {e}", flush=True)
+            if attempt == attempts:
+                raise
+            time.sleep(10 * attempt)
+            continue
+        with open(out_path, "wb") as f:
+            f.write(video)
+        print(f"    done in {time.time() - t0:.0f}s "
+              f"({len(video) / 1e6:.1f} MB)", flush=True)
+        return
 
 
 def main():
