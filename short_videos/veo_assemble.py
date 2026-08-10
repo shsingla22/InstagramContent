@@ -47,6 +47,9 @@ def _clip_duration(path):
 
 
 def _render_video_segment(src, dur, overlay_png, out, is_card=False):
+    """overlay_png: a single PNG path (fades in at 0.2s), or a list of
+    (png_path, fade_in_sec) tuples for staggered overlays. All overlays
+    fade out together before the crossfade."""
     if is_card:
         subprocess.run([
             "ffmpeg", "-y", "-loop", "1", "-t", str(dur), "-i", src,
@@ -55,20 +58,27 @@ def _render_video_segment(src, dur, overlay_png, out, is_card=False):
             "-pix_fmt", "yuv420p", out], check=True, capture_output=True)
         return
     cap_out = dur - XF - 0.5   # caption fully out before the crossfade
-    subprocess.run([
-        "ffmpeg", "-y", "-i", src, "-loop", "1", "-t", str(dur),
-        "-i", overlay_png,
-        "-filter_complex",
-        "[0:v]scale=1080:1920:force_original_aspect_ratio=increase:"
-        "flags=lanczos,crop=1080:1920,fps=24,"
-        "eq=gamma=1.02:contrast=1.03:saturation=0.96,"
-        "noise=alls=4:allf=t[v];"
-        f"[1:v]format=rgba,fade=t=in:st=0.2:d=0.4:alpha=1,"
-        f"fade=t=out:st={cap_out}:d=0.35:alpha=1[ov];"
-        "[v][ov]overlay=0:0:shortest=1[outv]",
-        "-map", "[outv]", "-r", "24", "-an",
-        "-c:v", "libx264", "-preset", "fast", "-crf", "16",
-        "-pix_fmt", "yuv420p", out], check=True, capture_output=True)
+    overlays = (overlay_png if isinstance(overlay_png, list)
+                else [(overlay_png, 0.2)])
+    cmd = ["ffmpeg", "-y", "-i", src]
+    for png, _ in overlays:
+        cmd += ["-loop", "1", "-t", str(dur), "-i", png]
+    graph = ("[0:v]scale=1080:1920:force_original_aspect_ratio=increase:"
+             "flags=lanczos,crop=1080:1920,fps=24,"
+             "eq=gamma=1.02:contrast=1.03:saturation=0.96,"
+             "noise=alls=4:allf=t[v0]")
+    prev = "[v0]"
+    for i, (_, t_in) in enumerate(overlays):
+        graph += (f";[{i + 1}:v]format=rgba,"
+                  f"fade=t=in:st={t_in}:d=0.4:alpha=1,"
+                  f"fade=t=out:st={cap_out}:d=0.35:alpha=1[ov{i}]")
+        nxt = f"[m{i}]" if i < len(overlays) - 1 else "[outv]"
+        graph += f";{prev}[ov{i}]overlay=0:0:shortest=1{nxt}"
+        prev = nxt
+    cmd += ["-filter_complex", graph, "-map", "[outv]", "-r", "24", "-an",
+            "-c:v", "libx264", "-preset", "fast", "-crf", "16",
+            "-pix_fmt", "yuv420p", out]
+    subprocess.run(cmd, check=True, capture_output=True)
 
 
 def build_thumbnail(scene_clip, thumb_path):
@@ -138,6 +148,8 @@ def assemble(scenes, ai_dir, out_path, thumb_path, cards=None, hook=None,
             ov = os.path.join(tmp, "ov_hook.png")
             make_hook(ov)
             _render_video_segment(src, dur, ov, out)
+        elif meta.get("overlays_maker"):
+            _render_video_segment(src, dur, meta["overlays_maker"](tmp), out)
         else:
             ov = os.path.join(tmp, f"ov_{meta['id']}.png")
             build_scene_overlay(meta, ov)

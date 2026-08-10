@@ -401,10 +401,88 @@ def _mood_retro_ride(rng, dur, band_in):
     return audio
 
 
+def _mood_velvet_rock(rng, dur, band_in):
+    """Old-money blues rock at 96 BPM, full band from the first beat:
+    relaxed backbeat with brushed hats, round root-and-fifth bass,
+    clean off-beat chord plucks with slapback, soft organ pads over
+    an A–E–F#m–D turn, and an unhurried A-pentatonic clean lead.
+    band_in places the title-card crash; the lead sits out during
+    the style-notes window near the end so the text owns the room."""
+    audio = np.zeros(int(dur * SR))
+    beat = 60.0 / 96
+    bar = 4 * beat
+    # roots and chord tones: A, E, F#m, D
+    PROG = [(110.0, [220.0, 277.18, 329.63]),
+            (82.41, [164.81, 207.65, 246.94]),
+            (92.5, [185.0, 220.0, 277.18]),
+            (73.42, [146.83, 185.0, 220.0])]
+    groove_end = dur - 1.4
+    quiet_lead = (dur - 6.9, dur - 2.1)          # the style-notes scene
+
+    t, bar_i = 0.0, 0
+    while t < groove_end:
+        root, chord = PROG[bar_i % len(PROG)]
+        _add(audio, _pad_chord([root, root * 2] + chord, bar + 0.3, 0.035), t)
+        for b in range(4):
+            at = t + b * beat
+            if at >= groove_end:
+                break
+            note = root if b % 2 == 0 else root * 1.5
+            _add(audio, _bass_note(note, beat * 0.9) * 0.75, at)
+        for b in (1, 3):                          # off-beat clean strums
+            at = t + b * beat + beat * 0.5
+            if at >= groove_end:
+                break
+            strum = np.zeros(int(beat * 0.9 * SR))
+            for i, f in enumerate(chord):
+                p = _pluck(f, beat * 0.8, 0.55) * 0.32
+                _add(strum, p, i * 0.018)
+            _add(audio, _slapback(strum, 0.11, 0.3), at)
+        t += bar
+        bar_i += 1
+
+    t, beat_i = 0.0, 0
+    while t < groove_end:
+        _add(audio, _hat(rng) * 0.6, t)
+        _add(audio, _hat(rng) * 0.4, t + beat * 0.55)
+        if beat_i % 2 == 0:
+            _add(audio, _kick() * 0.85, t)
+        else:
+            _add(audio, _snare(rng) * 0.6, t)     # brushed, polite
+        t += beat
+        beat_i += 1
+
+    _add(audio, _crash(rng) * 0.5, 0.0)
+    if band_in > 0.5:
+        _add(audio, _crash(rng) * 0.75, band_in)
+
+    # clean laid-back lead, A major pentatonic, sits out for the notes
+    A4, B4, Cs5, E5, Fs5 = 440.0, 493.88, 554.37, 659.26, 739.99
+    PHRASE = [
+        (0.5, Cs5, 1.2), (2.0, B4, 0.7), (2.7, A4, 1.6),
+        (4.5, E5, 1.2), (6.0, Cs5, 0.7), (6.7, B4, 1.8),
+        (8.5, A4, 0.9), (9.5, B4, 0.9), (10.5, Cs5, 1.4),
+        (12.5, E5, 0.8), (13.3, Fs5, 0.6), (14.0, E5, 1.8),
+    ]
+    t = 0.0
+    while t < groove_end - bar:
+        for off, f0, ndur in PHRASE:
+            at = t + off * beat
+            if at >= groove_end:
+                break
+            if quiet_lead[0] <= at <= quiet_lead[1]:
+                continue
+            note = _slapback(_pluck(f0, ndur * beat, 0.85), 0.11, 0.32)
+            _add(audio, note * 0.5, at)
+        t += 4 * bar
+    return audio
+
+
 MOODS = {
     "storm_heritage": _mood_storm,
     "classic_rock": _mood_classic_rock,
     "retro_ride": _mood_retro_ride,
+    "velvet_rock": _mood_velvet_rock,
     "western": _mood_western,
     "elegant_waltz": _mood_waltz,
     "epic": _mood_epic,
