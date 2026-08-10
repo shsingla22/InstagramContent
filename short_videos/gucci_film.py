@@ -73,13 +73,14 @@ SCENES = [
     {
         "id": "02_atelier",
         "prompt": (
-            "In a 1950s Italian shoemaker's atelier, a craftsman's hands "
-            "hold a full-size metal horse snaffle bit above a workbench, "
-            "next to a single elegant black calfskin leather loafer. He "
-            "sets a miniature gold horsebit ornament onto the loafer's "
-            "vamp, adjusting it precisely under a warm work lamp, "
-            "leather tools and polish tins around. Camera: slow close "
-            "orbit over the hands, the bit and the shoe. " + LUX
+            "In a 1950s Italian shoemaker's atelier, a close-up of a "
+            "craftsman's hands holding an elegant black calfskin "
+            "leather loafer with a small gold horsebit ornament on its "
+            "vamp. He polishes the leather with a soft cloth and turns "
+            "the shoe slowly so the gold horsebit catches the light of "
+            "the warm work lamp, leather tools and polish tins on the "
+            "scarred wooden workbench around him. Camera: slow close "
+            "orbit over the hands and the shoe. " + LUX
         ),
         "caption": "1953. Aldo Gucci shrank\na horse's bit into gold.",
         "eyebrow": "NEW YORK → FLORENCE",
