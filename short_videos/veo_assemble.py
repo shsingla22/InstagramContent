@@ -100,15 +100,22 @@ def build_thumbnail(scene_clip, thumb_path):
     os.remove(tmpf)
 
 
-def assemble(scenes, ai_dir, out_path, thumb_path):
+def assemble(scenes, ai_dir, out_path, thumb_path, cards=None, hook=None,
+             mood="classic_rock", mood_band_idx=None, thumb_maker=None,
+             thumb_scene_idx=2,
+             closing_freqs=(82.41, 123.47, 164.81, 207.65)):
+    """Stitch a film. Defaults reproduce the Belstaff reel; other films
+    pass their own card builders, hook overlay, mood, and thumbnail."""
+    make_brand, make_outro = cards or (card_brand, card_outro)
+    make_hook = hook or hook_overlay
     tmp = os.path.join(ai_dir, ".assembly")
     os.makedirs(tmp, exist_ok=True)
 
-    # timeline: scene1, brand card, scene2..4, outro
+    # timeline: scene1, brand card, scene2..N, outro
     brand_png = os.path.join(tmp, "brand.png")
     outro_png = os.path.join(tmp, "outro.png")
-    card_brand(brand_png)
-    card_outro(outro_png)
+    make_brand(brand_png)
+    make_outro(outro_png)
 
     entries = []       # (src, dur, sfx list or None, meta)
     s1 = os.path.join(ai_dir, f"scene_{scenes[0]['id']}.mp4")
@@ -129,7 +136,7 @@ def assemble(scenes, ai_dir, out_path, thumb_path):
             _render_video_segment(src, dur, None, out, is_card=True)
         elif meta == "hook":
             ov = os.path.join(tmp, "ov_hook.png")
-            hook_overlay(ov)
+            make_hook(ov)
             _render_video_segment(src, dur, ov, out)
         else:
             ov = os.path.join(tmp, f"ov_{meta['id']}.png")
@@ -147,7 +154,8 @@ def assemble(scenes, ai_dir, out_path, thumb_path):
 
     n = int(total * SR)
     rng = np.random.default_rng(1924)
-    audio = MOODS["classic_rock"](rng, total, 0.0)[:n]
+    band_at = starts[mood_band_idx] if mood_band_idx is not None else 0.0
+    audio = MOODS[mood](rng, total, band_at)[:n]
     if len(audio) < n:
         audio = np.concatenate([audio, np.zeros(n - len(audio))])
 
@@ -165,8 +173,7 @@ def assemble(scenes, ai_dir, out_path, thumb_path):
     ring_at = max(0.0, total - OUTRO_SEC - 1.2)
     nring = int(3.0 * SR)
     t = np.arange(nring) / SR
-    chord = sum(np.sin(2 * np.pi * f * t)
-                for f in (82.41, 123.47, 164.81, 207.65))
+    chord = sum(np.sin(2 * np.pi * f * t) for f in closing_freqs)
     _add(audio, chord * _env(nring, int(0.02 * SR), int(2.4 * SR)) * 0.10,
          ring_at)
 
@@ -215,8 +222,9 @@ def assemble(scenes, ai_dir, out_path, thumb_path):
         "-movflags", "+faststart", "-shortest", no_thumb,
     ], check=True, capture_output=True)
 
-    build_thumbnail(os.path.join(ai_dir, f"scene_{scenes[2]['id']}.mp4"),
-                    thumb_path)
+    (thumb_maker or build_thumbnail)(
+        os.path.join(ai_dir, f"scene_{scenes[thumb_scene_idx]['id']}.mp4"),
+        thumb_path)
     subprocess.run([
         "ffmpeg", "-y", "-i", no_thumb, "-i", thumb_path,
         "-map", "0", "-map", "1", "-c", "copy", "-c:v:1", "mjpeg",

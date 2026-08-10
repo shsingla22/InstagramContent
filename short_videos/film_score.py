@@ -318,9 +318,93 @@ def _mood_classic_rock(rng, dur, band_in):
     return audio
 
 
+def _slapback(sig, delay_s=0.09, level=0.35):
+    d = int(delay_s * SR)
+    out = sig.copy()
+    out[d:] += sig[:-d] * level
+    return out
+
+
+def _mood_retro_ride(rng, dur, band_in):
+    """1950s retro riding groove, full band from the first beat:
+    swung shuffle, walking upright bass over a 12-bar loop in A,
+    brushed backbeat, twangy off-beat guitar stabs with slapback
+    echo, and a catchy A-pentatonic twang lead that repeats like a
+    chorus. band_in only places an extra crash accent (title card)."""
+    audio = np.zeros(int(dur * SR))
+    beat = 60.0 / 138                            # bright shuffle
+    swing = 0.66
+    bar = 4 * beat
+    A_, D, E = 110.0, 146.83, 164.81             # A2 D3 E3 roots
+    PROG = [A_, A_, D, A_, E, D, A_, E]
+    WALKS = {A_: [110.0, 138.59, 164.81, 196.0],
+             D: [146.83, 185.0, 220.0, 185.0],
+             E: [164.81, 207.65, 246.94, 207.65]}
+    groove_end = dur - 1.4
+
+    # walking bass + twang stabs on the off-beats
+    t, bar_i = 0.0, 0
+    while t < groove_end:
+        root = PROG[bar_i % len(PROG)]
+        for b in range(4):
+            at = t + b * beat
+            if at >= groove_end:
+                break
+            _add(audio, _bass_note(WALKS[root][b] / 2, beat * 0.95) * 0.85, at)
+            stab = sum(_pluck(f, beat * 0.55, 0.75) for f in
+                       (root * 2, root * 2 * 1.25, root * 2 * 1.5))
+            _add(audio, _slapback(stab) * 0.20, at + beat * swing)
+        t += bar
+        bar_i += 1
+
+    # drums: brushed shuffle with backbeat, from the downbeat
+    t, beat_i = 0.0, 0
+    while t < groove_end:
+        _add(audio, _hat(rng) * 0.8, t)
+        _add(audio, _hat(rng) * 0.5, t + beat * swing)
+        if beat_i % 2 == 0:
+            _add(audio, _kick() * 0.95, t)
+        else:
+            _add(audio, _snare(rng) * 0.95, t)
+        t += beat
+        beat_i += 1
+
+    # crashes: downbeat, the title card, then every 4 bars
+    _add(audio, _crash(rng) * 0.9, 0.0)
+    if band_in > 0.5:
+        _add(audio, _crash(rng) * 0.8, band_in)
+    t = 4 * bar
+    while t < groove_end:
+        _add(audio, _crash(rng) * 0.45, t)
+        t += 4 * bar
+
+    # twang lead chorus: A major pentatonic, swung, with slapback
+    A4, B4, Cs5, E5, Fs5, A5 = 440.0, 493.88, 554.37, 659.26, 739.99, 880.0
+    HOOK = [
+        (0.0, E5, 0.6), (0.66, Cs5, 0.4), (1.0, A4, 1.6),
+        (2.66, B4, 0.4), (3.0, Cs5, 1.6),
+        (4.0, E5, 0.6), (4.66, Fs5, 0.4), (5.0, A5, 1.6),
+        (6.66, Fs5, 0.4), (7.0, E5, 1.8),
+        (8.0, Cs5, 0.6), (8.66, B4, 0.4), (9.0, A4, 1.6),
+        (10.66, B4, 0.4), (11.0, Cs5, 0.9), (12.0, E5, 0.9),
+        (13.0, A4, 2.6),
+    ]
+    t = bar                                      # lead enters bar 2
+    while t < groove_end - bar:
+        for off, f0, ndur in HOOK:
+            at = t + off * beat
+            if at >= groove_end:
+                break
+            note = _slapback(_pluck(f0, ndur * beat, 0.9))
+            _add(audio, note * 0.62, at)
+        t += 4 * bar
+    return audio
+
+
 MOODS = {
     "storm_heritage": _mood_storm,
     "classic_rock": _mood_classic_rock,
+    "retro_ride": _mood_retro_ride,
     "western": _mood_western,
     "elegant_waltz": _mood_waltz,
     "epic": _mood_epic,
