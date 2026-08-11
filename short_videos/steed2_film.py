@@ -129,15 +129,17 @@ def build_audio(shot_starts, total, wav_path):
         seg = _load_wav_mono(os.path.join(VO_DIR, f"{vo_id}.wav"))
         rms = np.sqrt((seg ** 2).mean())
         if rms > 0:
-            seg = seg / rms * 0.165
+            seg = seg / rms * 0.215          # voice out front
         vo_at = max(at + 0.1, prev_end + 0.2)
         _add(vo, seg, vo_at)
         prev_end = vo_at + len(seg) / SR
 
-    music = MOODS["rockabilly"](rng, total, 0.0)[:n] * 0.8
+    music = MOODS["rockabilly"](rng, total, 0.0)[:n] * 1.05
     if len(music) < n:
         music = np.concatenate([music, np.zeros(n - len(music))])
-    _add(music, _crash(rng) * 0.5, shot_starts[1])
+    _add(music, _crash(rng) * 0.8, shot_starts[1])
+    _add(music, _crash(rng) * 0.6, shot_starts[5])   # into the heirloom
+    _add(music, _crash(rng) * 0.7, shot_starts[6])   # onto STEED
     # weather + machine under the story: rain through the storm and
     # test scenes, engine under the night ride
     _add(music, SFX["rain"](rng, shot_starts[3] - shot_starts[1]),
@@ -158,7 +160,7 @@ def build_audio(shot_starts, total, wav_path):
     win = int(0.06 * SR)
     env = np.convolve(env, np.ones(win) / win, mode="same")
     env = np.minimum(env / 0.04, 1.0)
-    duck = 1.0 - 0.62 * env
+    duck = 1.0 - 0.55 * env              # music stays bold under the voice
     smooth = int(0.05 * SR)
     duck = np.convolve(duck, np.ones(smooth) / smooth, mode="same")
     music *= duck
@@ -168,10 +170,10 @@ def build_audio(shot_starts, total, wav_path):
     audio[:fade_in] *= np.linspace(0, 1, fade_in)
     fade_out = int(0.8 * SR)
     audio[-fade_out:] *= 0.5 + 0.5 * np.cos(np.linspace(0, np.pi, fade_out))
-    audio = np.tanh(audio * 1.4) / np.tanh(1.4)
+    audio = np.tanh(audio * 1.55) / np.tanh(1.55)
     peak = np.abs(audio).max()
     if peak > 0:
-        audio = audio / peak * 0.5
+        audio = audio / peak * 0.56
     delay = int(0.012 * SR)
     right = np.concatenate([np.zeros(delay), audio[:-delay]])
     stereo = np.stack([audio, right], axis=1)
