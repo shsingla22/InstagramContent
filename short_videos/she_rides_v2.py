@@ -291,7 +291,7 @@ def build_audio(total, drop_at, stop_at, loop_at, wav_path):
     audio = np.tanh(audio * 1.6) / np.tanh(1.6)
     peak = np.abs(audio).max()
     if peak > 0:
-        audio = audio / peak * 0.5
+        audio = audio / peak * 0.44    # headroom for AAC transient overshoot
     delay = int(0.012 * SR)
     right = np.concatenate([np.zeros(delay), audio[:-delay]])
     stereo = np.stack([audio, right], axis=1)
@@ -376,7 +376,7 @@ def assemble():
         f"[cat][wm]overlay=0:0:shortest=1,noise=alls=4:allf=t[outv]",
         "-map", "[outv]", "-map", f"{len(segs) + 1}:a",
         "-c:v", "libx264", "-preset", "medium", "-crf", "20",
-        "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k",
+        "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "256k",
         "-movflags", "+faststart", "-shortest", no_thumb,
     ], check=True, capture_output=True)
 
