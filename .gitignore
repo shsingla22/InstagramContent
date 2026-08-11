@@ -9,3 +9,4 @@ output/short_videos/films/*/.assembly/
 output/short_videos/films/*/.assembly_v3/
 output/short_videos/films/*/.v2_assembly/
 output/short_videos/stock/
+output/short_videos/films/*/.voice/
