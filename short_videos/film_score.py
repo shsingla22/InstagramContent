@@ -478,11 +478,105 @@ def _mood_velvet_rock(rng, dur, band_in):
     return audio
 
 
+def _mood_apex_rock(rng, dur, band_in):
+    """Aggressive modern hard rock at 126 BPM for the stunt reel:
+    a coiled palm-muted E5 chug with a driving kick under the intro,
+    the full band detonating at band_in (crash, backbeat, E-G-A-C
+    power riffing, eighth-note bass, hard pentatonic lead answers),
+    then a dead-stop half-beat of silence just before the reveal
+    scene and one final massive chord to restart the groove."""
+    audio = np.zeros(int(dur * SR))
+    beat = 60.0 / 126
+    bar = 4 * beat
+    E, G, A_, C = 82.41, 98.0, 110.0, 130.81
+    PROG = [E, G, A_, C]
+    groove_end = dur - 1.4
+
+    t, bar_i = 0.0, 0
+    while t < groove_end:
+        root = PROG[bar_i % len(PROG)]
+        if t < band_in:                          # coiled chug on E
+            for e8 in range(8):
+                at = t + e8 * beat / 2
+                if at >= min(band_in, groove_end):
+                    break
+                acc = 1.0 if e8 in (0, 3, 6) else 0.6
+                _add(audio, _power_chord(E, beat * 0.5, mute=True,
+                                         drive=5.0) * 0.55 * acc, at)
+                _add(audio, _bass_note(E / 2, beat * 0.45) * 0.6, at)
+        else:
+            _add(audio, _power_chord(root, beat * 2.0, drive=4.5) * 0.6, t)
+            for e8 in (4, 5, 6, 7):
+                at = t + e8 * beat / 2
+                if at >= groove_end:
+                    break
+                _add(audio, _power_chord(root, beat * 0.5, mute=True,
+                                         drive=4.5) * 0.4, at)
+            for e8 in range(8):
+                at = t + e8 * beat / 2
+                if at >= groove_end:
+                    break
+                _add(audio, _bass_note(root / 2, beat * 0.45) * 0.85, at)
+        t += bar
+        bar_i += 1
+
+    t, beat_i = 0.0, 0
+    while t < groove_end:
+        in_band = t >= band_in
+        _add(audio, _hat(rng) * (0.9 if in_band else 0.6), t)
+        _add(audio, _hat(rng) * 0.55, t + beat / 2)
+        if in_band:
+            if beat_i % 2 == 0:
+                _add(audio, _kick() * 1.15, t)
+                _add(audio, _kick() * 0.6, t + beat / 2)
+            else:
+                _add(audio, _snare(rng) * 1.2, t)
+        else:
+            _add(audio, _kick() * 0.9, t)        # driving intro pulse
+        t += beat
+        beat_i += 1
+
+    _add(audio, _crash(rng), band_in)
+    t = band_in + 4 * bar
+    while t < groove_end:
+        _add(audio, _crash(rng) * 0.55, t)
+        t += 4 * bar
+
+    # hard pentatonic lead answers after the drop
+    E4, G4, A4, B4, D5, E5, G5 = (329.63, 392.0, 440.0, 493.88,
+                                  587.33, 659.26, 783.99)
+    LICKS = [
+        [(0.0, E5, 0.5, None), (0.5, D5, 0.5, None), (1.0, B4, 0.5, None),
+         (1.5, D5, 0.5, E5), (2.5, G5, 1.2, None)],
+        [(0.0, B4, 0.5, None), (0.5, A4, 0.5, None), (1.0, G4, 0.5, None),
+         (1.5, A4, 1.0, B4), (3.0, E4, 0.9, None)],
+    ]
+    t, li = band_in + 2 * bar, 0
+    while t + 2 * bar <= groove_end + 0.5:
+        for off, f0, ndur, f1 in LICKS[li % 2]:
+            _add(audio, _lead_note(f0, ndur * beat, f1, 0.4), t + off * beat)
+        t += 2 * bar
+        li += 1
+
+    # dead stop before the reveal, then one massive restart chord
+    t_stop = dur - 7.05
+    if t_stop > band_in:
+        i0, i1 = int(t_stop * SR), int((t_stop + 0.26) * SR)
+        edge = int(0.008 * SR)
+        audio[i0 - edge:i0] *= np.linspace(1, 0, edge)
+        audio[i0:i1] = 0.0
+        audio[i1:i1 + edge] *= np.linspace(0, 1, edge)
+        _add(audio, _crash(rng) * 0.9, t_stop + 0.26)
+        _add(audio, _power_chord(E, 2.2, drive=4.5) * 0.7, t_stop + 0.26)
+    return audio
+
+
 MOODS = {
     "storm_heritage": _mood_storm,
     "classic_rock": _mood_classic_rock,
     "retro_ride": _mood_retro_ride,
     "velvet_rock": _mood_velvet_rock,
+    "apex_rock": _mood_apex_rock,
     "western": _mood_western,
     "elegant_waltz": _mood_waltz,
     "epic": _mood_epic,
