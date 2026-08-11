@@ -134,9 +134,13 @@ def build_audio(shot_starts, total, wav_path):
         _add(vo, seg, vo_at)
         prev_end = vo_at + len(seg) / SR
 
-    music = MOODS["rockabilly"](rng, total, 0.0)[:n] * 1.05
-    if len(music) < n:
-        music = np.concatenate([music, np.zeros(n - len(music))])
+    from short_videos.studio import THEME_SECONDS, steed_bed, steed_theme
+    music = np.zeros(n)
+    _add(music, steed_theme(), 0.0)                  # the sonic logo
+    bed = steed_bed(rng, total - THEME_SECONDS + 0.4)
+    edge = int(0.3 * SR)
+    bed[:edge] *= np.linspace(0, 1, edge)
+    _add(music, bed, THEME_SECONDS - 0.4)
     _add(music, _crash(rng) * 0.8, shot_starts[1])
     _add(music, _crash(rng) * 0.6, shot_starts[5])   # into the heirloom
     _add(music, _crash(rng) * 0.7, shot_starts[6])   # onto STEED
@@ -165,15 +169,12 @@ def build_audio(shot_starts, total, wav_path):
     duck = np.convolve(duck, np.ones(smooth) / smooth, mode="same")
     music *= duck
 
-    audio = music + vo
+    from short_videos.studio import master
+    audio = master(music + vo)
     fade_in = int(0.1 * SR)
     audio[:fade_in] *= np.linspace(0, 1, fade_in)
     fade_out = int(0.8 * SR)
     audio[-fade_out:] *= 0.5 + 0.5 * np.cos(np.linspace(0, np.pi, fade_out))
-    audio = np.tanh(audio * 1.55) / np.tanh(1.55)
-    peak = np.abs(audio).max()
-    if peak > 0:
-        audio = audio / peak * 0.56
     delay = int(0.012 * SR)
     right = np.concatenate([np.zeros(delay), audio[:-delay]])
     stereo = np.stack([audio, right], axis=1)

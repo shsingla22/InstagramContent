@@ -258,15 +258,19 @@ def build_audio(shot_starts, total, wav_path):
         seg = _load_wav_mono(os.path.join(VO_DIR, f"{vo_id}.wav"))
         rms = np.sqrt((seg ** 2).mean())
         if rms > 0:
-            seg = seg / rms * 0.165
+            seg = seg / rms * 0.215          # voice out front
         vo_at = max(at + 0.1, prev_end + 0.2)
         _add(vo, seg, vo_at)
         prev_end = vo_at + len(seg) / SR
 
-    music = MOODS["rockabilly"](rng, total, 0.0)[:n] * 0.85
-    if len(music) < n:
-        music = np.concatenate([music, np.zeros(n - len(music))])
-    _add(music, _crash(rng) * 0.5, shot_starts[1])       # into the story
+    from short_videos.studio import THEME_SECONDS, steed_bed, steed_theme
+    music = np.zeros(n)
+    _add(music, steed_theme(), 0.0)                      # the sonic logo
+    bed = steed_bed(rng, total - THEME_SECONDS + 0.4)
+    edge = int(0.3 * SR)
+    bed[:edge] *= np.linspace(0, 1, edge)
+    _add(music, bed, THEME_SECONDS - 0.4)
+    _add(music, _crash(rng) * 0.6, shot_starts[1])       # into the story
     # engine layer under the race and speedo shots
     race_at, race_end = shot_starts[4], shot_starts[6]
     _add(music, SFX["engine"](rng, race_end - race_at) * 0.45, race_at)
@@ -282,20 +286,17 @@ def build_audio(shot_starts, total, wav_path):
     win = int(0.06 * SR)
     env = np.convolve(env, np.ones(win) / win, mode="same")
     env = np.minimum(env / 0.04, 1.0)
-    duck = 1.0 - 0.62 * env
+    duck = 1.0 - 0.55 * env              # music stays bold under the voice
     smooth = int(0.05 * SR)
     duck = np.convolve(duck, np.ones(smooth) / smooth, mode="same")
     music *= duck
 
-    audio = music + vo
+    from short_videos.studio import master
+    audio = master(music + vo)
     fade_in = int(0.1 * SR)
     audio[:fade_in] *= np.linspace(0, 1, fade_in)
     fade_out = int(0.8 * SR)
     audio[-fade_out:] *= 0.5 + 0.5 * np.cos(np.linspace(0, np.pi, fade_out))
-    audio = np.tanh(audio * 1.4) / np.tanh(1.4)
-    peak = np.abs(audio).max()
-    if peak > 0:
-        audio = audio / peak * 0.5
     delay = int(0.012 * SR)
     right = np.concatenate([np.zeros(delay), audio[:-delay]])
     stereo = np.stack([audio, right], axis=1)
