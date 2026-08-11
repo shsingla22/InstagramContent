@@ -56,7 +56,8 @@ SCENES = [
     {
         "id": "01_paddock",
         "prompt": (
-            f"{RIDER}, leathers half-unzipped over a fitted black top, "
+            f"{RIDER}, the racing suit zipped over a black athletic "
+            f"crew-neck top visible at the collar, "
             f"carrying a racing helmet under one arm, walks in slow "
             f"confident slow-motion stride through a race paddock past "
             f"rows of parked superbikes, mechanics glancing up as she "
