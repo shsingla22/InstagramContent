@@ -191,3 +191,92 @@ def steed_theme():
     fade = int(0.25 * SR)
     audio[-fade:] *= np.linspace(1, 0.4, fade)
     return audio[:n]
+
+
+# ── dark phonk (the neon-loop sound) ────────────────────────────────
+
+def _cowbell(freq, dur, vel=1.0):
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    sig = (np.sign(np.sin(2 * np.pi * freq * t)) * 0.5
+           + np.sign(np.sin(2 * np.pi * freq * 1.48 * t)) * 0.35)
+    sig = np.convolve(sig, np.ones(9) / 9.0, mode="same")
+    return sig * np.exp(-t * 9) * _env(n, 8, n // 2) * 0.34 * vel
+
+
+def _sub808(freq, dur, glide_to=None, vel=1.0):
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    f = (np.linspace(freq, glide_to, n) if glide_to
+         else np.full(n, float(freq)))
+    sig = np.sin(2 * np.pi * np.cumsum(f) / SR)
+    sig = np.tanh(sig * 2.4)
+    return sig * _env(n, int(0.004 * SR), int(n * 0.5)) * 0.75 * vel
+
+
+def phonk_track(rng, dur, sections=None):
+    """Dark phonk: cowbell melody, gliding distorted 808s, halftime
+    drums with hat rolls and vinyl crackle. `sections` is a list of
+    (start, end, mode) with mode 'half' or 'double' to switch the
+    drum energy (the versus-reel device)."""
+    bpm, n = 132, int(dur * SR)
+    beat = 60.0 / bpm
+    bar = 4 * beat
+    audio = np.zeros(n)
+    drums = np.zeros(n)
+
+    def mode_at(t):
+        for s, e, m in (sections or []):
+            if s <= t < e:
+                return m
+        return "half"
+
+    # E-minor phonk melody, one 2-bar phrase repeating
+    Em = [329.63, 392.0, 329.63, 293.66, 246.94, 293.66, 329.63, 246.94]
+    t, i = 0.0, 0
+    while t < dur - beat / 2:
+        _add(audio, _cowbell(Em[i % len(Em)], beat * 0.9,
+                             rng.uniform(0.85, 1.1)), t)
+        t += beat / 2 if i % 4 == 3 else beat
+        i += 1
+
+    # 808 roots: E1 glides
+    t, k = 0.0, 0
+    while t < dur - bar / 2:
+        root = [41.2, 41.2, 49.0, 36.7][k % 4]
+        glide = root * (1.5 if k % 4 == 2 else 1.0)
+        _add(audio, _sub808(root, bar * 0.95, glide), t)
+        t += bar
+        k += 1
+
+    t, beat_i = 0.0, 0
+    while t < dur - beat / 2:
+        double = mode_at(t) == "double"
+        _add(drums, hat2(rng, rng.uniform(0.8, 1.1)), t)
+        _add(drums, hat2(rng, 0.6), t + beat / 2)
+        if double:
+            _add(drums, hat2(rng, 0.5), t + beat / 4)
+            _add(drums, hat2(rng, 0.5), t + 3 * beat / 4)
+            if beat_i % 2 == 0:
+                _add(drums, kick2(1.1), t)
+                _add(drums, kick2(0.7), t + beat / 2)
+            else:
+                _add(drums, snare2(rng, 1.15), t)
+        else:                                    # halftime: snare on 3
+            if beat_i % 4 == 0:
+                _add(drums, kick2(1.05), t)
+            if beat_i % 4 == 2:
+                _add(drums, snare2(rng, 1.1), t)
+            if beat_i % 8 == 7:                  # hat roll into the bar
+                for r in range(4):
+                    _add(drums, hat2(rng, 0.45 + 0.1 * r),
+                         t + r * beat / 8)
+        t += beat
+        beat_i += 1
+
+    crackle = rng.normal(0, 1, n)
+    crackle -= np.convolve(crackle, np.ones(24) / 24.0, mode="same")
+    pops = (rng.random(n) > 0.9997).astype(float)
+    crackle = crackle * 0.006 + pops * rng.normal(0, 0.05, n)
+
+    return room(glue(audio + drums, 0.45, 2.4), wet=0.12)[:n] + crackle[:n]
