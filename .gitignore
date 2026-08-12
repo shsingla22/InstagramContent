@@ -1,0 +1,14 @@
+*.pyc
+__pycache__/
+output/short_videos/.photo_cache/
+output/short_videos/.prompt_embeds.pt
+output/short_videos/films/*/.assembly*/
+output/short_videos/films/*/.assembly/
+output/short_videos/films/*/.assembly_v3/
+output/short_videos/films/*/.v2_assembly/
+output/short_videos/films/*/.voice*/
+output/short_videos/films/*/.voice/
+output/short_videos/stock/
+output/short_videos/story/.assembly/
+output/short_videos/story/.embeds/
+output/videos/.tmp_*/
