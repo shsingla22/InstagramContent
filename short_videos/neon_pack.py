@@ -174,13 +174,18 @@ def build_loop(scene_id, out_name, label, balance):
     subprocess.run(["ffmpeg", "-y", "-ss", "1.0", "-i", joined,
                     "-frames:v", "1", thumb], check=True,
                    capture_output=True)
+    av = os.path.join(TMP, f"{scene_id}_av.mp4")
     subprocess.run([
-        "ffmpeg", "-y", "-i", joined, "-i", wav, "-i", thumb,
-        "-map", "0:v", "-map", "1:a", "-map", "2",
+        "ffmpeg", "-y", "-i", joined, "-i", wav,
+        "-map", "0:v", "-map", "1:a",
         "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
-        "-c:v:1", "mjpeg", "-disposition:v:1", "attached_pic",
-        "-movflags", "+faststart", "-shortest", out],
+        "-movflags", "+faststart", av],
         check=True, capture_output=True)
+    subprocess.run([
+        "ffmpeg", "-y", "-i", av, "-i", thumb,
+        "-map", "0", "-map", "1", "-c", "copy", "-c:v:1", "mjpeg",
+        "-disposition:v:1", "attached_pic", "-movflags", "+faststart",
+        out], check=True, capture_output=True)
     print(f"  loop saved: {out} ({dur:.1f}s)")
 
 
